@@ -1225,6 +1225,7 @@
       draggedId: null,
       syncEnabled: false,
       syncTimer: null,
+      syncRetryTimer: null,
       localRevision: 0
     };
 
@@ -1379,12 +1380,20 @@
       els.syncStatus.textContent = "Menyinkronkan...";
       try {
         await remoteCall("saveAppData", { tasks: state.tasks, ideas: state.ideas });
+        clearTimeout(state.syncRetryTimer);
         localStorage.removeItem(dirtyStoreKey);
         els.syncStatus.textContent = "Tersinkron ke Google Sheets";
       } catch (error) {
-        els.syncStatus.textContent = "Offline · tersimpan lokal";
+        els.syncStatus.textContent = "Sinkronisasi tertunda · data lokal aman";
+        scheduleSyncRetry();
         console.error(error);
       }
+    }
+
+    function scheduleSyncRetry() {
+      if (!remoteBackendAvailable || !state.syncEnabled) return;
+      clearTimeout(state.syncRetryTimer);
+      state.syncRetryTimer = setTimeout(syncFromServer, 10000);
     }
 
     async function syncFromServer() {
@@ -1422,13 +1431,15 @@
         localStorage.setItem(storeKey, JSON.stringify(state.tasks));
         localStorage.setItem(ideaStoreKey, JSON.stringify(state.ideas));
         localStorage.removeItem(dirtyStoreKey);
+        clearTimeout(state.syncRetryTimer);
         stopTimer();
         state.activeId = null;
         render();
         if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
         els.syncStatus.textContent = "Tersinkron ke Google Sheets";
       } catch (error) {
-        els.syncStatus.textContent = "Offline · tersimpan lokal";
+        els.syncStatus.textContent = "Sinkronisasi tertunda · data lokal aman";
+        scheduleSyncRetry();
         console.error(error);
       }
     }

@@ -24,19 +24,7 @@ exports.handler = async function handler(event) {
       requestPayload = { action: "saveAppData", token: gasToken, data };
     }
 
-    const gasResponse = await fetch(gasUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(requestPayload),
-      redirect: "follow"
-    });
-    const raw = await gasResponse.text();
-    let result;
-    try {
-      result = JSON.parse(raw);
-    } catch {
-      throw new Error("Backend GAS tidak mengembalikan JSON. Periksa URL deployment /exec dan akses Web App.");
-    }
+    const { gasResponse, result } = await callGasWithRetry(gasUrl, requestPayload);
 
     if (!gasResponse.ok || result.ok === false) {
       throw new Error(result.error || `Backend GAS gagal (${gasResponse.status}).`);
@@ -46,6 +34,38 @@ exports.handler = async function handler(event) {
     return response(502, { error: error.message || "Tidak dapat menghubungi backend GAS." });
   }
 };
+
+async function callGasWithRetry(gasUrl, requestPayload) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const gasResponse = await fetch(gasUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(requestPayload),
+        redirect: "follow"
+      });
+      const raw = await gasResponse.text();
+      let result;
+      try {
+        result = JSON.parse(raw);
+      } catch {
+        throw new Error("Backend GAS tidak mengembalikan JSON.");
+      }
+      return { gasResponse, result };
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) await delay(attempt * 700);
+    }
+  }
+
+  throw lastError || new Error("Tidak dapat menghubungi backend GAS.");
+}
+
+function delay(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 
 function response(statusCode, body) {
   return {
