@@ -1,0 +1,56 @@
+const JSON_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store"
+};
+
+exports.handler = async function handler(event) {
+  if (event.httpMethod !== "GET" && event.httpMethod !== "PUT") {
+    return response(405, { error: "Metode tidak diizinkan." });
+  }
+
+  const gasUrl = process.env.GAS_API_URL;
+  const gasToken = process.env.GAS_API_TOKEN;
+  if (!gasUrl || !gasToken) {
+    return response(503, { error: "Backend GAS belum dikonfigurasi di Netlify." });
+  }
+
+  try {
+    let requestPayload = { action: "getAppData", token: gasToken };
+    if (event.httpMethod === "PUT") {
+      const data = JSON.parse(event.body || "{}");
+      if (!Array.isArray(data.tasks) || !Array.isArray(data.ideas)) {
+        return response(400, { error: "Data aplikasi tidak valid." });
+      }
+      requestPayload = { action: "saveAppData", token: gasToken, data };
+    }
+
+    const gasResponse = await fetch(gasUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(requestPayload),
+      redirect: "follow"
+    });
+    const raw = await gasResponse.text();
+    let result;
+    try {
+      result = JSON.parse(raw);
+    } catch {
+      throw new Error("Backend GAS tidak mengembalikan JSON. Periksa URL deployment /exec dan akses Web App.");
+    }
+
+    if (!gasResponse.ok || result.ok === false) {
+      throw new Error(result.error || `Backend GAS gagal (${gasResponse.status}).`);
+    }
+    return response(200, result.data !== undefined ? result.data : result);
+  } catch (error) {
+    return response(502, { error: error.message || "Tidak dapat menghubungi backend GAS." });
+  }
+};
+
+function response(statusCode, body) {
+  return {
+    statusCode,
+    headers: JSON_HEADERS,
+    body: JSON.stringify(body)
+  };
+}

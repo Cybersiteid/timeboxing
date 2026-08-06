@@ -1,0 +1,2129 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Time Boxing</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #6b7280;
+      --line: #d9dee7;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --danger: #b91c1c;
+      --done: #15803d;
+      --shadow: 0 18px 55px rgba(23, 32, 42, 0.12);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #eef2f5 0%, var(--bg) 38%, #ffffff 100%);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app {
+      width: min(1040px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 20px 0 28px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      padding: 10px 0 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .app-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 10px 0 0;
+    }
+
+    .view-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .view-tab:hover {
+      background: #e9eef3;
+      color: var(--ink);
+    }
+
+    .view-tab.active {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .nav-count {
+      display: inline-grid;
+      place-items: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: var(--ink);
+      font-size: 11px;
+    }
+
+    .view-tab.active .nav-count {
+      background: #ffffff;
+    }
+
+    .data-tools {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-left: auto;
+    }
+
+    .data-tool {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .data-tool:hover {
+      background: #e9eef3;
+    }
+
+    .sync-status {
+      margin-right: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 36px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 7px 0 0;
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .today {
+      min-width: 164px;
+      padding: 11px 13px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .today strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .today span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(280px, 330px) 1fr;
+      gap: 16px;
+      padding-top: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .composer {
+      padding: 14px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .section-title {
+      margin: 0 0 11px;
+      font-size: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      color: #374151;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      background: #fbfcfd;
+      color: var(--ink);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 66px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .primary {
+      width: 100%;
+      min-height: 38px;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .primary:hover {
+      background: #115e59;
+    }
+
+    .timer {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .timer .section-title {
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .timer-face {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 168px;
+      min-height: 0;
+      aspect-ratio: 1;
+      margin: 4px auto 14px;
+      border: 0;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--progress), #e3e8ee 0);
+      box-shadow: 0 12px 30px rgba(23, 32, 42, 0.12);
+      transition: background 180ms linear;
+    }
+
+    .timer-face::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 1px solid rgba(217, 222, 231, 0.72);
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffffff, #f6f8fa);
+      box-shadow: inset 0 1px 0 #ffffff;
+    }
+
+    .timer-face > div {
+      position: relative;
+      z-index: 1;
+      width: 125px;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .timer-task {
+      min-height: 17px;
+      margin-top: 8px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.3;
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .timer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .icon-btn,
+    .small-btn {
+      min-height: 0;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+    }
+
+    #startPause {
+      width: 48px;
+      height: 48px;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 7px 18px rgba(15, 118, 110, 0.25);
+    }
+
+    #startPause:hover {
+      background: #115e59;
+      transform: translateY(-1px);
+    }
+
+    .icon-btn:hover,
+    .small-btn:hover {
+      background: #edf2f7;
+    }
+
+    .icon-btn:hover {
+      border-color: #b9c3cf;
+      transform: translateY(-1px);
+    }
+
+    .icon-btn:active {
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .timer-face,
+      .icon-btn {
+        transition: none;
+      }
+    }
+
+    .idea-panel {
+      display: none;
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    body.view-ideas .idea-panel {
+      display: block;
+    }
+
+    body.view-ideas .task-only {
+      display: none;
+    }
+
+    body.view-ideas main {
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+    }
+
+    .idea-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .idea-panel-header h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .idea-count {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .idea-capture {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 7px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .idea-capture input {
+      min-width: 0;
+      min-height: 36px;
+    }
+
+    .idea-add {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .idea-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .idea-tab {
+      min-height: 30px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .idea-tab.active {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .idea-list {
+      max-height: 245px;
+      overflow-y: auto;
+    }
+
+    .idea-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      padding: 9px 12px;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .idea-item:last-child {
+      border-bottom: 0;
+    }
+
+    .idea-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 750;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .idea-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .idea-target {
+      width: auto;
+      min-height: 28px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+
+    .idea-actions {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 4px;
+    }
+
+    .idea-action {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .idea-action:hover {
+      background: #edf2f7;
+    }
+
+    .idea-empty {
+      padding: 20px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stat {
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .stat b {
+      display: block;
+      font-size: 20px;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-auto-flow: column;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .segment {
+      min-height: 31px;
+      padding: 0 9px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .segment.active {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .task.done {
+      background: #f3faf5;
+    }
+
+    .task-content {
+      min-width: 0;
+    }
+
+    .check {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--line);
+      background: #ffffff;
+      color: var(--done);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .task.done .check {
+      border-color: var(--done);
+      background: #dcfce7;
+    }
+
+    .task h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .task.done h2 {
+      color: var(--done);
+      text-decoration: line-through;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2f7;
+    }
+
+    .badge.high {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .badge.medium {
+      background: #fef3c7;
+      color: var(--accent-2);
+    }
+
+    .badge.low {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .badge.schedule {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .badge.deadline {
+      background: #f3e8ff;
+      color: #7e22ce;
+    }
+
+    .badge.overdue {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .badge.today-due {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .notes {
+      margin: 8px 0 0;
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .subtasks {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .subtask-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      min-height: 28px;
+      margin: 0 0 8px;
+      padding: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .subtask-heading:hover {
+      color: var(--ink);
+    }
+
+    .subtask-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .subtask-chevron {
+      display: inline-block;
+      font-size: 15px;
+      transition: transform 140ms ease;
+    }
+
+    .subtasks.collapsed .subtask-heading {
+      margin-bottom: 0;
+    }
+
+    .subtasks.collapsed .subtask-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .subtasks.collapsed .subtask-body {
+      display: none;
+    }
+
+    .subtask-list {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .subtask-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 7px 8px;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+
+    .subtask-check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #b8c2cf;
+      border-radius: 5px;
+      background: #ffffff;
+      color: var(--done);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .subtask-item.done .subtask-check {
+      border-color: var(--done);
+      background: #dcfce7;
+    }
+
+    .subtask-title {
+      min-width: 0;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .subtask-item.done .subtask-title {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .subtask-delete {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .subtask-delete:hover {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .subtask-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+    }
+
+    .subtask-form input {
+      min-width: 0;
+      min-height: 36px;
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    .subtask-add {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: var(--ink);
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .actions {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 6px;
+    }
+
+    .square {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      font-weight: 900;
+    }
+
+    .square:hover {
+      background: #edf2f7;
+    }
+
+    .drag-handle {
+      display: none;
+      cursor: grab;
+      color: var(--muted);
+    }
+
+    body.manual-sort .drag-handle {
+      display: block;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .task.dragging {
+      opacity: 0.45;
+    }
+
+    .task.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.12);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    .empty {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      border: 1px dashed #bdc7d3;
+      border-radius: var(--radius);
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    dialog {
+      width: min(520px, calc(100% - 28px));
+      max-height: calc(100vh - 32px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--ink);
+      box-shadow: 0 24px 70px rgba(23, 32, 42, 0.25);
+    }
+
+    dialog::backdrop {
+      background: rgba(23, 32, 42, 0.42);
+    }
+
+    .dialog-form {
+      padding: 18px;
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .dialog-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .secondary {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f8fafc;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    @media (max-width: 860px) {
+      header,
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .composer {
+        position: static;
+      }
+
+      .toolbar,
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .segmented {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 22px, 1180px);
+        padding-top: 16px;
+      }
+
+      .today {
+        min-width: 0;
+      }
+
+      .form-row,
+      .toolbar,
+      .stats,
+      .timer-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .idea-item {
+        grid-template-columns: 1fr;
+      }
+
+      .idea-actions {
+        justify-content: start;
+      }
+
+      .task {
+        grid-template-columns: auto 1fr;
+      }
+
+      .actions {
+        grid-column: 1 / -1;
+        grid-auto-flow: column;
+        justify-content: stretch;
+      }
+
+      .square {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Task Time Boxing</h1>
+        <p class="subhead">Susun pekerjaan, beri batas waktu yang jelas, lalu jalankan timer untuk satu fokus kecil pada satu waktu.</p>
+      </div>
+      <div class="today" aria-live="polite">
+        <strong id="todayDay">Hari ini</strong>
+        <span id="todayDate">-</span>
+      </div>
+    </header>
+
+    <nav class="app-nav" aria-label="Menu utama">
+      <button class="view-tab active" type="button" data-view="tasks">Task</button>
+      <button class="view-tab" type="button" data-view="ideas">
+        Inbox & Rencana
+        <span class="nav-count" id="ideaNavCount">0</span>
+      </button>
+      <div class="data-tools">
+        <span class="sync-status" id="syncStatus">Tersimpan lokal</span>
+        <button class="data-tool" id="exportData" type="button" title="Ekspor data">⇩</button>
+        <button class="data-tool" id="importData" type="button" title="Impor data">⇧</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+      </div>
+    </nav>
+
+    <main>
+      <aside class="panel composer task-only">
+        <h2 class="section-title">Tambah task</h2>
+        <form id="taskForm">
+          <div class="field">
+            <label for="title">Nama task</label>
+            <input id="title" name="title" required maxlength="90" placeholder="Contoh: Review proposal klien">
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="minutes">Time box</label>
+              <input id="minutes" name="minutes" type="number" min="5" max="240" step="5" value="25" required>
+            </div>
+            <div class="field">
+              <label for="priority">Prioritas</label>
+              <select id="priority" name="priority">
+                <option value="high">Tinggi</option>
+                <option value="medium" selected>Sedang</option>
+                <option value="low">Rendah</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="startTime">Mulai</label>
+              <input id="startTime" name="startTime" type="time">
+            </div>
+            <div class="field">
+              <label for="deadline">Deadline</label>
+              <input id="deadline" name="deadline" type="date">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="notes">Catatan</label>
+            <textarea id="notes" name="notes" maxlength="220" placeholder="Konteks singkat, definisi selesai, atau link referensi"></textarea>
+          </div>
+
+          <button class="primary" type="submit" title="Tambah task">+ Tambah ke daftar</button>
+        </form>
+
+        <section class="timer" aria-label="Timer time box">
+          <h2 class="section-title">Timer fokus</h2>
+          <div class="timer-face" id="timerFace" style="--progress: 0deg;">
+            <div>
+              <div class="time" id="timerDisplay">25:00</div>
+              <div class="timer-task" id="timerTask">Pilih task untuk mulai</div>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <button class="icon-btn" id="startPause" type="button" title="Mulai atau jeda timer">▶</button>
+            <button class="icon-btn" id="resetTimer" type="button" title="Reset timer">↺</button>
+            <button class="icon-btn" id="finishTask" type="button" title="Selesaikan task">✓</button>
+          </div>
+        </section>
+      </aside>
+
+      <section>
+        <section class="idea-panel" aria-label="Inbox ide dan rencana">
+          <div class="idea-panel-header">
+            <h2>Inbox & Rencana</h2>
+            <span class="idea-count" id="ideaCount">0 tersimpan</span>
+          </div>
+          <form class="idea-capture" id="ideaForm">
+            <input id="ideaTitle" maxlength="120" required placeholder="Tangkap ide singkat..." aria-label="Ide baru">
+            <button class="idea-add" type="submit" title="Simpan ke inbox">+</button>
+          </form>
+          <div class="idea-tabs" role="tablist" aria-label="Status ide">
+            <button class="idea-tab active" type="button" data-idea-filter="inbox">Inbox</button>
+            <button class="idea-tab" type="button" data-idea-filter="plan">Rencana</button>
+            <button class="idea-tab" type="button" data-idea-filter="archived">Arsip</button>
+          </div>
+          <div class="idea-list" id="ideaList"></div>
+        </section>
+
+        <div class="stats task-only" aria-label="Ringkasan task">
+          <div class="stat"><b id="statTotal">0</b><span>Total</span></div>
+          <div class="stat"><b id="statOpen">0</b><span>Aktif</span></div>
+          <div class="stat"><b id="statDone">0</b><span>Selesai</span></div>
+          <div class="stat"><b id="statMinutes">0m</b><span>Terjadwal</span></div>
+        </div>
+
+        <div class="toolbar task-only">
+          <input id="search" type="search" placeholder="Cari task">
+          <select id="sortBy" aria-label="Urutkan task">
+            <option value="manual">Urutan manual</option>
+            <option value="created">Urut terbaru</option>
+            <option value="priority">Prioritas</option>
+            <option value="duration">Durasi</option>
+          </select>
+          <div class="segmented" role="tablist" aria-label="Filter task">
+            <button class="segment active" type="button" data-filter="all">Semua</button>
+            <button class="segment" type="button" data-filter="open">Aktif</button>
+            <button class="segment" type="button" data-filter="done">Selesai</button>
+          </div>
+        </div>
+
+        <div class="task-list task-only" id="taskList"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editDialog">
+    <form class="dialog-form" id="editForm">
+      <div class="dialog-header">
+        <h2>Edit task</h2>
+        <button class="dialog-close" id="closeEdit" type="button" title="Tutup">×</button>
+      </div>
+      <input id="editId" type="hidden">
+      <div class="field">
+        <label for="editTitle">Nama task</label>
+        <input id="editTitle" required maxlength="90">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="editMinutes">Time box</label>
+          <input id="editMinutes" type="number" min="5" max="240" step="5" required>
+        </div>
+        <div class="field">
+          <label for="editPriority">Prioritas</label>
+          <select id="editPriority">
+            <option value="high">Tinggi</option>
+            <option value="medium">Sedang</option>
+            <option value="low">Rendah</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="editStartTime">Mulai</label>
+          <input id="editStartTime" type="time">
+        </div>
+        <div class="field">
+          <label for="editDeadline">Deadline</label>
+          <input id="editDeadline" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="editNotes">Catatan</label>
+        <textarea id="editNotes" maxlength="220"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary" id="cancelEdit" type="button">Batal</button>
+        <button class="primary" type="submit">Simpan perubahan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const storeKey = "timeBoxTasks:v1";
+    const ideaStoreKey = "timeBoxIdeas:v1";
+    const dirtyStoreKey = "timeBoxSyncDirty:v1";
+    const remoteBackendAvailable = location.protocol === "https:" || location.hostname === "localhost";
+    const priorityRank = { high: 0, medium: 1, low: 2 };
+    const priorityLabel = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
+    const state = {
+      tasks: [],
+      ideas: [],
+      view: "tasks",
+      filter: "all",
+      ideaFilter: "inbox",
+      activeId: null,
+      secondsLeft: 25 * 60,
+      timerTotal: 25 * 60,
+      running: false,
+      tick: null,
+      draggedId: null,
+      syncEnabled: false,
+      syncTimer: null,
+      localRevision: 0
+    };
+
+    const els = {
+      form: document.querySelector("#taskForm"),
+      ideaForm: document.querySelector("#ideaForm"),
+      ideaTitle: document.querySelector("#ideaTitle"),
+      ideaList: document.querySelector("#ideaList"),
+      ideaCount: document.querySelector("#ideaCount"),
+      ideaNavCount: document.querySelector("#ideaNavCount"),
+      ideaTabs: document.querySelectorAll(".idea-tab"),
+      viewTabs: document.querySelectorAll(".view-tab"),
+      syncStatus: document.querySelector("#syncStatus"),
+      exportData: document.querySelector("#exportData"),
+      importData: document.querySelector("#importData"),
+      importFile: document.querySelector("#importFile"),
+      title: document.querySelector("#title"),
+      minutes: document.querySelector("#minutes"),
+      priority: document.querySelector("#priority"),
+      startTime: document.querySelector("#startTime"),
+      deadline: document.querySelector("#deadline"),
+      notes: document.querySelector("#notes"),
+      list: document.querySelector("#taskList"),
+      search: document.querySelector("#search"),
+      sortBy: document.querySelector("#sortBy"),
+      segments: document.querySelectorAll(".segment"),
+      timerDisplay: document.querySelector("#timerDisplay"),
+      timerTask: document.querySelector("#timerTask"),
+      timerFace: document.querySelector("#timerFace"),
+      startPause: document.querySelector("#startPause"),
+      resetTimer: document.querySelector("#resetTimer"),
+      finishTask: document.querySelector("#finishTask"),
+      statTotal: document.querySelector("#statTotal"),
+      statOpen: document.querySelector("#statOpen"),
+      statDone: document.querySelector("#statDone"),
+      statMinutes: document.querySelector("#statMinutes"),
+      todayDay: document.querySelector("#todayDay"),
+      todayDate: document.querySelector("#todayDate"),
+      editDialog: document.querySelector("#editDialog"),
+      editForm: document.querySelector("#editForm"),
+      editId: document.querySelector("#editId"),
+      editTitle: document.querySelector("#editTitle"),
+      editMinutes: document.querySelector("#editMinutes"),
+      editPriority: document.querySelector("#editPriority"),
+      editStartTime: document.querySelector("#editStartTime"),
+      editDeadline: document.querySelector("#editDeadline"),
+      editNotes: document.querySelector("#editNotes"),
+      closeEdit: document.querySelector("#closeEdit"),
+      cancelEdit: document.querySelector("#cancelEdit")
+    };
+
+    function initDate() {
+      const now = new Date();
+      els.todayDay.textContent = new Intl.DateTimeFormat("id-ID", { weekday: "long" }).format(now);
+      els.todayDate.textContent = new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }).format(now);
+    }
+
+    function loadTasks() {
+      const saved = localStorage.getItem(storeKey);
+      state.tasks = saved ? JSON.parse(saved) : [
+        {
+          id: crypto.randomUUID(),
+          title: "Rencanakan 3 prioritas utama",
+          minutes: 25,
+          priority: "high",
+          notes: "Tulis hasil yang ingin selesai sebelum mulai bekerja.",
+          startTime: "09:00",
+          deadline: "",
+          done: false,
+          subtasks: [],
+          subtasksCollapsed: true,
+          createdAt: Date.now()
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "Rapikan inbox dan pesan penting",
+          minutes: 15,
+          priority: "medium",
+          notes: "",
+          startTime: "10:00",
+          deadline: "",
+          done: false,
+          subtasks: [],
+          subtasksCollapsed: true,
+          createdAt: Date.now() - 1
+        }
+      ];
+      state.tasks = state.tasks.map(task => ({
+        ...task,
+        startTime: task.startTime || "",
+        deadline: task.deadline || "",
+        subtasksCollapsed: task.subtasksCollapsed !== false,
+        subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
+      }));
+      saveTasks();
+    }
+
+    function saveTasks() {
+      localStorage.setItem(storeKey, JSON.stringify(state.tasks));
+      if (state.syncEnabled) {
+        state.localRevision += 1;
+        localStorage.setItem(dirtyStoreKey, "true");
+      }
+      queueServerSync();
+    }
+
+    function loadIdeas() {
+      const saved = localStorage.getItem(ideaStoreKey);
+      state.ideas = saved ? JSON.parse(saved) : [];
+      state.ideas = state.ideas.map(idea => ({
+        ...idea,
+        status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
+        targetMonth: idea.targetMonth || ""
+      }));
+      saveIdeas();
+    }
+
+    function saveIdeas() {
+      localStorage.setItem(ideaStoreKey, JSON.stringify(state.ideas));
+      if (state.syncEnabled) {
+        state.localRevision += 1;
+        localStorage.setItem(dirtyStoreKey, "true");
+      }
+      queueServerSync();
+    }
+
+    async function remoteCall(action, payload) {
+      const response = await fetch("/api/data", {
+        method: action === "getAppData" ? "GET" : "PUT",
+        headers: action === "getAppData" ? { "Accept": "application/json" } : { "Content-Type": "application/json" },
+        body: action === "getAppData" ? undefined : JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({ error: "Respons backend tidak valid." }));
+      if (!response.ok) throw new Error(result.error || `Backend gagal (${response.status}).`);
+      return result;
+    }
+
+    function queueServerSync() {
+      if (!remoteBackendAvailable || !state.syncEnabled) return;
+      clearTimeout(state.syncTimer);
+      els.syncStatus.textContent = "Menunggu sinkronisasi...";
+      state.syncTimer = setTimeout(pushServerData, 650);
+    }
+
+    async function pushServerData() {
+      if (!remoteBackendAvailable) return;
+      clearTimeout(state.syncTimer);
+      els.syncStatus.textContent = "Menyinkronkan...";
+      try {
+        await remoteCall("saveAppData", { tasks: state.tasks, ideas: state.ideas });
+        localStorage.removeItem(dirtyStoreKey);
+        els.syncStatus.textContent = "Tersinkron ke Google Sheets";
+      } catch (error) {
+        els.syncStatus.textContent = "Offline · tersimpan lokal";
+        console.error(error);
+      }
+    }
+
+    async function syncFromServer() {
+      if (!remoteBackendAvailable) {
+        els.syncStatus.textContent = "Tersimpan lokal";
+        return;
+      }
+      els.syncStatus.textContent = "Menghubungkan Google Sheets...";
+      const revisionAtStart = state.localRevision;
+      try {
+        const remote = await remoteCall("getAppData");
+        const hasPendingLocalChanges = localStorage.getItem(dirtyStoreKey) === "true" || state.localRevision !== revisionAtStart;
+        if (hasPendingLocalChanges) {
+          await pushServerData();
+          return;
+        }
+        const hasRemoteData = remote.tasks.length > 0 || remote.ideas.length > 0;
+        if (!hasRemoteData && (state.tasks.length > 0 || state.ideas.length > 0)) {
+          await pushServerData();
+          return;
+        }
+
+        state.tasks = remote.tasks.map(task => ({
+          ...task,
+          startTime: task.startTime || "",
+          deadline: task.deadline || "",
+          subtasksCollapsed: task.subtasksCollapsed !== false,
+          subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
+        }));
+        state.ideas = remote.ideas.map(idea => ({
+          ...idea,
+          status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
+          targetMonth: idea.targetMonth || ""
+        }));
+        localStorage.setItem(storeKey, JSON.stringify(state.tasks));
+        localStorage.setItem(ideaStoreKey, JSON.stringify(state.ideas));
+        localStorage.removeItem(dirtyStoreKey);
+        stopTimer();
+        state.activeId = null;
+        render();
+        if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
+        els.syncStatus.textContent = "Tersinkron ke Google Sheets";
+      } catch (error) {
+        els.syncStatus.textContent = "Offline · tersimpan lokal";
+        console.error(error);
+      }
+    }
+
+    function addIdea(event) {
+      event.preventDefault();
+      const title = els.ideaTitle.value.trim();
+      if (!title) return;
+      state.ideas.unshift({
+        id: crypto.randomUUID(),
+        title,
+        status: "inbox",
+        targetMonth: "",
+        createdAt: Date.now()
+      });
+      saveIdeas();
+      els.ideaForm.reset();
+      state.ideaFilter = "inbox";
+      syncIdeaTabs();
+      renderIdeas();
+      els.ideaTitle.focus();
+    }
+
+    function setIdeaStatus(id, status) {
+      const idea = state.ideas.find(item => item.id === id);
+      if (!idea) return;
+      idea.status = status;
+      saveIdeas();
+      renderIdeas();
+    }
+
+    function setIdeaTarget(id, targetMonth) {
+      const idea = state.ideas.find(item => item.id === id);
+      if (!idea) return;
+      idea.targetMonth = targetMonth;
+      saveIdeas();
+    }
+
+    function deleteIdea(id) {
+      state.ideas = state.ideas.filter(idea => idea.id !== id);
+      saveIdeas();
+      renderIdeas();
+    }
+
+    function deadlineFromTargetMonth(targetMonth) {
+      if (!targetMonth) return "";
+      const [year, month] = targetMonth.split("-").map(Number);
+      const lastDay = new Date(year, month, 0).getDate().toString().padStart(2, "0");
+      return `${targetMonth}-${lastDay}`;
+    }
+
+    function convertIdeaToTask(id) {
+      const idea = state.ideas.find(item => item.id === id);
+      if (!idea) return;
+      const task = {
+        id: crypto.randomUUID(),
+        title: idea.title,
+        minutes: 25,
+        priority: "medium",
+        startTime: "",
+        deadline: deadlineFromTargetMonth(idea.targetMonth),
+        notes: idea.status === "plan" ? "Dibuat dari Rencana." : "Dibuat dari Inbox Ide.",
+        done: false,
+        subtasks: [],
+        subtasksCollapsed: true,
+        createdAt: Date.now()
+      };
+      state.tasks.unshift(task);
+      state.ideas = state.ideas.filter(item => item.id !== id);
+      saveTasks();
+      saveIdeas();
+      setView("tasks");
+      chooseTask(task.id);
+    }
+
+    function addTask(event) {
+      event.preventDefault();
+      const task = {
+        id: crypto.randomUUID(),
+        title: els.title.value.trim(),
+        minutes: Number(els.minutes.value),
+        priority: els.priority.value,
+        startTime: els.startTime.value,
+        deadline: els.deadline.value,
+        notes: els.notes.value.trim(),
+        done: false,
+        subtasks: [],
+        subtasksCollapsed: true,
+        createdAt: Date.now()
+      };
+
+      if (!task.title) return;
+      state.tasks.unshift(task);
+      saveTasks();
+      els.form.reset();
+      els.minutes.value = 25;
+      els.priority.value = "medium";
+      render();
+      chooseTask(task.id);
+    }
+
+    function visibleTasks() {
+      const query = els.search.value.trim().toLowerCase();
+      return state.tasks
+        .filter(task => {
+          const matchesFilter =
+            state.filter === "all" ||
+            (state.filter === "open" && !task.done) ||
+            (state.filter === "done" && task.done);
+          const matchesSearch =
+            task.title.toLowerCase().includes(query) ||
+            task.notes.toLowerCase().includes(query) ||
+            task.subtasks.some(subtask => subtask.title.toLowerCase().includes(query));
+          return matchesFilter && matchesSearch;
+        })
+        .sort((a, b) => {
+          if (els.sortBy.value === "manual") return 0;
+          if (els.sortBy.value === "priority") return priorityRank[a.priority] - priorityRank[b.priority];
+          if (els.sortBy.value === "duration") return b.minutes - a.minutes;
+          return b.createdAt - a.createdAt;
+        });
+    }
+
+    function setView(view) {
+      state.view = view === "ideas" ? "ideas" : "tasks";
+      document.body.classList.toggle("view-ideas", state.view === "ideas");
+      els.viewTabs.forEach(tab => {
+        const active = tab.dataset.view === state.view;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-current", active ? "page" : "false");
+      });
+      if (state.view === "ideas") {
+        renderIdeas();
+        requestAnimationFrame(() => els.ideaTitle.focus());
+      }
+    }
+
+    function syncIdeaTabs() {
+      els.ideaTabs.forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.ideaFilter === state.ideaFilter);
+      });
+    }
+
+    function renderIdeas() {
+      const activeCount = state.ideas.filter(idea => idea.status !== "archived").length;
+      els.ideaCount.textContent = `${activeCount} aktif`;
+      els.ideaNavCount.textContent = activeCount;
+      const ideas = state.ideas.filter(idea => idea.status === state.ideaFilter);
+
+      if (!ideas.length) {
+        const emptyLabels = {
+          inbox: "Inbox masih kosong.",
+          plan: "Belum ada rencana mendatang.",
+          archived: "Belum ada ide yang diarsipkan."
+        };
+        els.ideaList.innerHTML = `<div class="idea-empty">${emptyLabels[state.ideaFilter]}</div>`;
+        return;
+      }
+
+      els.ideaList.innerHTML = ideas.map(idea => `
+        <div class="idea-item" data-idea-id="${idea.id}">
+          <div>
+            <p class="idea-title">${escapeHtml(idea.title)}</p>
+            <div class="idea-meta">
+              <span>Dicatat ${formatCreatedAt(idea.createdAt)}</span>
+              ${idea.status === "plan" ? `
+                <label>
+                  Target
+                  <input class="idea-target" type="month" value="${escapeHtml(idea.targetMonth)}" aria-label="Target bulan rencana" data-action="target-month">
+                </label>
+              ` : ""}
+            </div>
+          </div>
+          <div class="idea-actions">
+            ${idea.status === "inbox" ? '<button class="idea-action" type="button" title="Jadikan rencana" data-action="make-plan">◇</button>' : ""}
+            ${idea.status !== "archived" ? '<button class="idea-action" type="button" title="Ubah menjadi task" data-action="make-task">→</button>' : ""}
+            ${idea.status === "plan" ? '<button class="idea-action" type="button" title="Kembalikan ke inbox" data-action="restore-inbox">↶</button>' : ""}
+            ${idea.status !== "archived" ? '<button class="idea-action" type="button" title="Arsipkan" data-action="archive-idea">□</button>' : '<button class="idea-action" type="button" title="Kembalikan ke inbox" data-action="restore-inbox">↶</button>'}
+            <button class="idea-action danger" type="button" title="Hapus permanen" data-action="delete-idea">×</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function render() {
+      renderIdeas();
+      renderStats();
+      renderTimer();
+      document.body.classList.toggle("manual-sort", els.sortBy.value === "manual");
+      const tasks = visibleTasks();
+
+      if (tasks.length === 0) {
+        els.list.innerHTML = '<div class="empty">Tidak ada task yang cocok.</div>';
+        return;
+      }
+
+      els.list.innerHTML = tasks.map(task => {
+        const completedSubtasks = task.subtasks.filter(subtask => subtask.done).length;
+        return `
+        <article class="task ${task.done ? "done" : ""}" data-id="${task.id}">
+          <button class="check" type="button" title="Tandai selesai" data-action="toggle">${task.done ? "✓" : ""}</button>
+          <div class="task-content">
+            <h2>${escapeHtml(task.title)}</h2>
+            <div class="meta">
+              <span class="badge ${task.priority}">${priorityLabel[task.priority]}</span>
+              <span class="badge">${task.minutes} menit</span>
+              <span class="badge">Dibuat ${formatCreatedAt(task.createdAt)}</span>
+              ${task.startTime ? `<span class="badge schedule">${timeRange(task.startTime, task.minutes)}</span>` : ""}
+              ${deadlineBadge(task)}
+              ${state.activeId === task.id ? '<span class="badge">Di timer</span>' : ""}
+            </div>
+            ${task.notes ? `<p class="notes">${escapeHtml(task.notes)}</p>` : ""}
+            <div class="subtasks ${task.subtasksCollapsed ? "collapsed" : ""}">
+              <button class="subtask-heading" type="button" data-action="toggle-subtasks" aria-expanded="${!task.subtasksCollapsed}" title="Tampilkan atau sembunyikan subtask">
+                <span>Subtask</span>
+                <span class="subtask-summary">
+                  ${completedSubtasks}/${task.subtasks.length} selesai
+                  <span class="subtask-chevron" aria-hidden="true">⌄</span>
+                </span>
+              </button>
+              <div class="subtask-body">
+                ${task.subtasks.length ? `
+                  <div class="subtask-list">
+                    ${task.subtasks.map(subtask => `
+                      <div class="subtask-item ${subtask.done ? "done" : ""}" data-subtask-id="${subtask.id}">
+                        <button class="subtask-check" type="button" title="Tandai subtask selesai" data-action="toggle-subtask">${subtask.done ? "✓" : ""}</button>
+                        <span class="subtask-title">${escapeHtml(subtask.title)}</span>
+                        <button class="subtask-delete" type="button" title="Hapus subtask" data-action="delete-subtask">×</button>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : ""}
+                <form class="subtask-form" data-action="add-subtask">
+                  <input name="subtask" maxlength="90" required aria-label="Nama subtask" placeholder="Tambah subtask...">
+                  <button class="subtask-add" type="submit" title="Tambah subtask">+</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="square drag-handle" draggable="true" type="button" title="Seret untuk mengurutkan" data-action="drag">↕</button>
+            <button class="square" type="button" title="Edit task" data-action="edit">✎</button>
+            <button class="square" type="button" title="Pakai di timer" data-action="select">▶</button>
+            <button class="square danger" type="button" title="Hapus task" data-action="delete">×</button>
+          </div>
+        </article>
+      `}).join("");
+    }
+
+    function timeRange(startTime, minutes) {
+      const [hours, mins] = startTime.split(":").map(Number);
+      const end = new Date(2000, 0, 1, hours, mins + minutes);
+      const endTime = `${end.getHours().toString().padStart(2, "0")}:${end.getMinutes().toString().padStart(2, "0")}`;
+      return `${startTime}–${endTime}`;
+    }
+
+    function formatCreatedAt(timestamp) {
+      return new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date(timestamp));
+    }
+
+    function localDateKey(date = new Date()) {
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const day = date.getDate().toString().padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function deadlineBadge(task) {
+      if (!task.deadline) return "";
+      const label = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" })
+        .format(new Date(`${task.deadline}T00:00:00`));
+      if (!task.done && task.deadline < localDateKey()) {
+        return `<span class="badge overdue">Terlambat · ${label}</span>`;
+      }
+      if (!task.done && task.deadline === localDateKey()) {
+        return `<span class="badge today-due">Hari ini · ${label}</span>`;
+      }
+      return `<span class="badge deadline">Deadline ${label}</span>`;
+    }
+
+    function renderStats() {
+      const total = state.tasks.length;
+      const done = state.tasks.filter(task => task.done).length;
+      const open = total - done;
+      const minutes = state.tasks.filter(task => !task.done).reduce((sum, task) => sum + task.minutes, 0);
+
+      els.statTotal.textContent = total;
+      els.statOpen.textContent = open;
+      els.statDone.textContent = done;
+      els.statMinutes.textContent = `${minutes}m`;
+    }
+
+    function renderTimer() {
+      const task = currentTask();
+      const minutes = Math.floor(state.secondsLeft / 60).toString().padStart(2, "0");
+      const seconds = (state.secondsLeft % 60).toString().padStart(2, "0");
+      const elapsed = Math.max(0, state.timerTotal - state.secondsLeft);
+      const degrees = state.timerTotal ? Math.round((elapsed / state.timerTotal) * 360) : 0;
+
+      els.timerDisplay.textContent = `${minutes}:${seconds}`;
+      els.timerTask.textContent = task ? task.title : "Pilih task untuk mulai";
+      els.timerFace.style.setProperty("--progress", `${degrees}deg`);
+      els.startPause.textContent = state.running ? "Ⅱ" : "▶";
+      els.startPause.disabled = !task;
+      els.resetTimer.disabled = !task;
+      els.finishTask.disabled = !task;
+    }
+
+    function chooseTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      stopTimer();
+      state.activeId = task.id;
+      state.timerTotal = task.minutes * 60;
+      state.secondsLeft = state.timerTotal;
+      render();
+    }
+
+    function toggleTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      task.done = !task.done;
+      if (task.subtasks.length) {
+        task.subtasks.forEach(subtask => subtask.done = task.done);
+      }
+      if (task.done && state.activeId === id) stopTimer();
+      saveTasks();
+      render();
+    }
+
+    function openEditTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      els.editId.value = task.id;
+      els.editTitle.value = task.title;
+      els.editMinutes.value = task.minutes;
+      els.editPriority.value = task.priority;
+      els.editStartTime.value = task.startTime;
+      els.editDeadline.value = task.deadline;
+      els.editNotes.value = task.notes;
+      els.editDialog.showModal();
+      els.editTitle.focus();
+    }
+
+    function closeEditTask() {
+      els.editDialog.close();
+    }
+
+    function saveEditedTask(event) {
+      event.preventDefault();
+      const task = state.tasks.find(item => item.id === els.editId.value);
+      const title = els.editTitle.value.trim();
+      if (!task || !title) return;
+
+      task.title = title;
+      task.minutes = Number(els.editMinutes.value);
+      task.priority = els.editPriority.value;
+      task.startTime = els.editStartTime.value;
+      task.deadline = els.editDeadline.value;
+      task.notes = els.editNotes.value.trim();
+
+      if (state.activeId === task.id) {
+        stopTimer();
+        state.timerTotal = task.minutes * 60;
+        state.secondsLeft = state.timerTotal;
+      }
+
+      saveTasks();
+      closeEditTask();
+      render();
+    }
+
+    function reorderTask(sourceId, targetId) {
+      if (!sourceId || !targetId || sourceId === targetId) return;
+      const sourceIndex = state.tasks.findIndex(task => task.id === sourceId);
+      if (sourceIndex < 0) return;
+      const [movedTask] = state.tasks.splice(sourceIndex, 1);
+      const targetIndex = state.tasks.findIndex(task => task.id === targetId);
+      if (targetIndex < 0) {
+        state.tasks.push(movedTask);
+      } else {
+        state.tasks.splice(targetIndex, 0, movedTask);
+      }
+      saveTasks();
+      render();
+    }
+
+    function toggleSubtasks(taskId) {
+      const task = state.tasks.find(item => item.id === taskId);
+      if (!task) return;
+      task.subtasksCollapsed = !task.subtasksCollapsed;
+      saveTasks();
+      render();
+    }
+
+    function addSubtask(taskId, title) {
+      const task = state.tasks.find(item => item.id === taskId);
+      const cleanTitle = title.trim();
+      if (!task || !cleanTitle) return;
+      task.subtasks.push({ id: crypto.randomUUID(), title: cleanTitle, done: false });
+      task.subtasksCollapsed = false;
+      task.done = false;
+      saveTasks();
+      render();
+    }
+
+    function toggleSubtask(taskId, subtaskId) {
+      const task = state.tasks.find(item => item.id === taskId);
+      const subtask = task?.subtasks.find(item => item.id === subtaskId);
+      if (!task || !subtask) return;
+      subtask.done = !subtask.done;
+      task.done = task.subtasks.length > 0 && task.subtasks.every(item => item.done);
+      if (task.done && state.activeId === taskId) stopTimer();
+      saveTasks();
+      render();
+    }
+
+    function deleteSubtask(taskId, subtaskId) {
+      const task = state.tasks.find(item => item.id === taskId);
+      if (!task) return;
+      task.subtasks = task.subtasks.filter(item => item.id !== subtaskId);
+      if (task.subtasks.length) {
+        task.done = task.subtasks.every(item => item.done);
+      }
+      if (task.done && state.activeId === taskId) stopTimer();
+      saveTasks();
+      render();
+    }
+
+    function deleteTask(id) {
+      state.tasks = state.tasks.filter(task => task.id !== id);
+      if (state.activeId === id) {
+        stopTimer();
+        state.activeId = null;
+        state.timerTotal = 25 * 60;
+        state.secondsLeft = state.timerTotal;
+      }
+      saveTasks();
+      render();
+    }
+
+    function startPauseTimer() {
+      if (!currentTask()) return;
+      if (state.running) {
+        stopTimer();
+      } else {
+        state.running = true;
+        state.tick = setInterval(() => {
+          state.secondsLeft = Math.max(0, state.secondsLeft - 1);
+          if (state.secondsLeft === 0) {
+            stopTimer();
+            notifyDone();
+          }
+          renderTimer();
+        }, 1000);
+      }
+      renderTimer();
+    }
+
+    function stopTimer() {
+      state.running = false;
+      clearInterval(state.tick);
+      state.tick = null;
+    }
+
+    function resetTimer() {
+      const task = currentTask();
+      if (!task) return;
+      stopTimer();
+      state.timerTotal = task.minutes * 60;
+      state.secondsLeft = state.timerTotal;
+      renderTimer();
+    }
+
+    function finishActiveTask() {
+      const task = currentTask();
+      if (!task) return;
+      task.done = true;
+      task.subtasks.forEach(subtask => subtask.done = true);
+      stopTimer();
+      saveTasks();
+      render();
+    }
+
+    function notifyDone() {
+      const task = currentTask();
+      if (!task) return;
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Time box selesai", { body: task.title });
+      }
+      document.title = "Selesai - Task Time Boxing";
+      setTimeout(() => document.title = "Task Time Boxing", 3000);
+    }
+
+    function currentTask() {
+      return state.tasks.find(task => task.id === state.activeId && !task.done);
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function exportAppData() {
+      const payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        tasks: state.tasks,
+        ideas: state.ideas
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `task-timeboxing-${localDateKey()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importAppData(file) {
+      if (!file) return;
+      try {
+        const payload = JSON.parse(await file.text());
+        if (!Array.isArray(payload.tasks) || !Array.isArray(payload.ideas)) {
+          throw new Error("Format backup tidak valid.");
+        }
+        state.tasks = payload.tasks.map(task => ({
+          ...task,
+          startTime: task.startTime || "",
+          deadline: task.deadline || "",
+          subtasksCollapsed: task.subtasksCollapsed !== false,
+          subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
+        }));
+        state.ideas = payload.ideas.map(idea => ({
+          ...idea,
+          status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
+          targetMonth: idea.targetMonth || ""
+        }));
+        stopTimer();
+        state.activeId = null;
+        saveTasks();
+        saveIdeas();
+        render();
+        if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
+        els.syncStatus.textContent = "Data berhasil diimpor";
+      } catch (error) {
+        els.syncStatus.textContent = error.message || "Impor gagal";
+      } finally {
+        els.importFile.value = "";
+      }
+    }
+
+    els.form.addEventListener("submit", addTask);
+    els.ideaForm.addEventListener("submit", addIdea);
+    els.search.addEventListener("input", render);
+    els.sortBy.addEventListener("change", render);
+    els.startPause.addEventListener("click", () => {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+      startPauseTimer();
+    });
+    els.resetTimer.addEventListener("click", resetTimer);
+    els.finishTask.addEventListener("click", finishActiveTask);
+    els.exportData.addEventListener("click", exportAppData);
+    els.importData.addEventListener("click", () => els.importFile.click());
+    els.importFile.addEventListener("change", () => importAppData(els.importFile.files[0]));
+    els.editForm.addEventListener("submit", saveEditedTask);
+    els.closeEdit.addEventListener("click", closeEditTask);
+    els.cancelEdit.addEventListener("click", closeEditTask);
+    els.editDialog.addEventListener("click", event => {
+      if (event.target === els.editDialog) closeEditTask();
+    });
+
+    els.segments.forEach(button => {
+      button.addEventListener("click", () => {
+        state.filter = button.dataset.filter;
+        els.segments.forEach(item => item.classList.toggle("active", item === button));
+        render();
+      });
+    });
+
+    els.viewTabs.forEach(button => {
+      button.addEventListener("click", () => setView(button.dataset.view));
+    });
+
+    els.ideaTabs.forEach(button => {
+      button.addEventListener("click", () => {
+        state.ideaFilter = button.dataset.ideaFilter;
+        syncIdeaTabs();
+        renderIdeas();
+      });
+    });
+
+    els.ideaList.addEventListener("click", event => {
+      const button = event.target.closest("button");
+      const ideaEl = event.target.closest(".idea-item");
+      if (!button || !ideaEl) return;
+      const id = ideaEl.dataset.ideaId;
+      if (button.dataset.action === "make-plan") setIdeaStatus(id, "plan");
+      if (button.dataset.action === "make-task") convertIdeaToTask(id);
+      if (button.dataset.action === "restore-inbox") setIdeaStatus(id, "inbox");
+      if (button.dataset.action === "archive-idea") setIdeaStatus(id, "archived");
+      if (button.dataset.action === "delete-idea") deleteIdea(id);
+    });
+
+    els.ideaList.addEventListener("change", event => {
+      const input = event.target.closest('[data-action="target-month"]');
+      const ideaEl = event.target.closest(".idea-item");
+      if (!input || !ideaEl) return;
+      setIdeaTarget(ideaEl.dataset.ideaId, input.value);
+    });
+
+    els.list.addEventListener("click", event => {
+      const button = event.target.closest("button");
+      const taskEl = event.target.closest(".task");
+      if (!button || !taskEl) return;
+      const id = taskEl.dataset.id;
+      if (button.dataset.action === "toggle") toggleTask(id);
+      if (button.dataset.action === "toggle-subtasks") toggleSubtasks(id);
+      if (button.dataset.action === "edit") openEditTask(id);
+      if (button.dataset.action === "select") chooseTask(id);
+      if (button.dataset.action === "delete") deleteTask(id);
+      if (button.dataset.action === "toggle-subtask") {
+        toggleSubtask(id, button.closest(".subtask-item").dataset.subtaskId);
+      }
+      if (button.dataset.action === "delete-subtask") {
+        deleteSubtask(id, button.closest(".subtask-item").dataset.subtaskId);
+      }
+    });
+
+    els.list.addEventListener("submit", event => {
+      const form = event.target.closest('.subtask-form');
+      if (!form) return;
+      event.preventDefault();
+      const taskEl = form.closest(".task");
+      addSubtask(taskEl.dataset.id, new FormData(form).get("subtask"));
+    });
+
+    els.list.addEventListener("dragstart", event => {
+      const handle = event.target.closest('.drag-handle');
+      const taskEl = event.target.closest('.task');
+      if (!handle || !taskEl || els.sortBy.value !== "manual") {
+        event.preventDefault();
+        return;
+      }
+      state.draggedId = taskEl.dataset.id;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", state.draggedId);
+      requestAnimationFrame(() => taskEl.classList.add("dragging"));
+    });
+
+    els.list.addEventListener("dragover", event => {
+      const taskEl = event.target.closest('.task');
+      if (!taskEl || !state.draggedId || taskEl.dataset.id === state.draggedId) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      els.list.querySelectorAll('.drag-over').forEach(item => item.classList.remove('drag-over'));
+      taskEl.classList.add('drag-over');
+    });
+
+    els.list.addEventListener("drop", event => {
+      const taskEl = event.target.closest('.task');
+      if (!taskEl || !state.draggedId) return;
+      event.preventDefault();
+      reorderTask(state.draggedId, taskEl.dataset.id);
+      state.draggedId = null;
+    });
+
+    els.list.addEventListener("dragend", () => {
+      state.draggedId = null;
+      els.list.querySelectorAll('.dragging, .drag-over').forEach(item => {
+        item.classList.remove('dragging', 'drag-over');
+      });
+    });
+
+    initDate();
+    loadTasks();
+    loadIdeas();
+    state.syncEnabled = true;
+    setView("tasks");
+    if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
+    render();
+    syncFromServer();
+  </script>
+</body>
+</html>
