@@ -50,16 +50,19 @@ Di **Project configuration > Environment variables**, tambahkan:
 ```text
 GAS_API_URL     = URL /exec dari setupApi
 GAS_API_TOKEN   = token dari setupApi
+APP_ACCESS_TOKEN = kunci akses rahasia buatan Anda
 ```
 
-Setelah menyimpan, jalankan **Trigger deploy**.
+Gunakan kunci akses yang panjang dan sulit ditebak, minimal 20 karakter. Jangan menuliskan `APP_ACCESS_TOKEN` di repository. Setelah menyimpan ketiga environment variable secara terpisah, jalankan **Trigger deploy > Deploy site**.
 
 ## 5. Verifikasi
 
-1. Buka URL Netlify dan tunggu status `Tersinkron ke Google Sheets`.
-2. Tambahkan satu task percobaan.
-3. Muat ulang halaman dan pastikan task tetap ada.
-4. Periksa spreadsheet `Task Time Boxing Data`.
+1. Buka URL Netlify dan masukkan nilai `APP_ACCESS_TOKEN` pada layar kunci.
+2. Tunggu status `Tersinkron ke Google Sheets`.
+3. Tambahkan satu task percobaan.
+4. Muat ulang halaman dan pastikan task tetap ada.
+5. Periksa spreadsheet `Task Time Boxing Data`.
+6. Buka `/api/data` secara langsung; respons `Kunci akses tidak valid` menandakan endpoint sudah terlindungi.
 
 Jika status `Offline - tersimpan lokal`, periksa log fungsi `data`. Penyebab umum: URL bukan `/exec`, environment variable belum diisi, deployment GAS belum diperbarui, atau akses Web App bukan `Anyone`.
 
@@ -70,4 +73,6 @@ Klik `⇩` pada aplikasi lama untuk membuat backup JSON. Di aplikasi Netlify kli
 ## Keamanan
 
 - Jangan memasukkan `GAS_API_TOKEN` ke `index.html` atau Git.
+- Jangan memasukkan `APP_ACCESS_TOKEN` ke `index.html`, GAS, atau Git.
+- Tombol `#` di bagian kanan atas aplikasi digunakan untuk mengganti kunci yang tersimpan pada browser.
 - Jika token bocor, hapus property `TASK_TIMEBOXING_API_TOKEN` pada Script Properties lalu jalankan `setupApi` lagi.

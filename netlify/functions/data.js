@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
   "Cache-Control": "no-store"
@@ -6,6 +8,17 @@ const JSON_HEADERS = {
 exports.handler = async function handler(event) {
   if (event.httpMethod !== "GET" && event.httpMethod !== "PUT") {
     return response(405, { error: "Metode tidak diizinkan." });
+  }
+
+  const appAccessToken = process.env.APP_ACCESS_TOKEN;
+  if (!appAccessToken) {
+    return response(503, { error: "Kunci akses aplikasi belum dikonfigurasi di Netlify." });
+  }
+
+  const authorization = event.headers.authorization || event.headers.Authorization || "";
+  const suppliedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!tokensMatch(suppliedToken, appAccessToken)) {
+    return response(401, { error: "Kunci akses tidak valid." });
   }
 
   const gasUrl = process.env.GAS_API_URL;
@@ -65,6 +78,12 @@ async function callGasWithRetry(gasUrl, requestPayload) {
 
 function delay(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function tokensMatch(suppliedToken, expectedToken) {
+  const supplied = Buffer.from(suppliedToken);
+  const expected = Buffer.from(expectedToken);
+  return supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
 }
 
 function response(statusCode, body) {
