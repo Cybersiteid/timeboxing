@@ -13,7 +13,7 @@ Token GAS hanya disimpan sebagai environment variable Netlify dan tidak dikirim 
 1. Buka project Apps Script Task Time Boxing.
 2. Ganti isi `Code.gs` dengan versi terbaru dari folder `task-timeboxing-gas`.
 3. Simpan project.
-4. Jalankan fungsi `setupDatabase` jika database belum pernah dibuat.
+4. Jalankan fungsi `setupDatabase`. Versi ini menambahkan kolom `archivedAt` pada sheet `Tasks` tanpa mengganti spreadsheet atau data lama.
 5. Jalankan fungsi `setupApi`.
 6. Buka **Execution log**, lalu simpan dua nilai berikut secara rahasia:
 
@@ -63,6 +63,19 @@ Gunakan kunci akses yang panjang dan sulit ditebak, minimal 20 karakter. Jangan 
 4. Muat ulang halaman dan pastikan task tetap ada.
 5. Periksa spreadsheet `Task Time Boxing Data`.
 6. Buka `/api/data` secara langsung; respons `Kunci akses tidak valid` menandakan endpoint sudah terlindungi.
+
+## Arsip task selesai
+
+1. Tandai task sebagai selesai.
+2. Klik tombol arsip pada task tersebut.
+3. Buka menu `Arsip` untuk melihat, memulihkan, atau menghapus task secara permanen.
+4. Status arsip ikut tersimpan pada kolom `archivedAt` di Google Sheets.
+
+## Instal sebagai PWA
+
+Setelah deployment Netlify selesai, buka aplikasi melalui Chrome atau Edge. Tombol instal akan muncul di kanan atas ketika browser menyatakan aplikasi siap dipasang. Klik tombol tersebut untuk memasang Task Time Boxing sebagai aplikasi desktop atau HP.
+
+Halaman utama, ikon, dan data lokal dapat dibuka saat offline. Perubahan lokal akan dikirim ke Google Sheets setelah koneksi kembali dan kunci akses masih tersimpan pada perangkat.
 
 Jika status `Offline - tersimpan lokal`, periksa log fungsi `data`. Penyebab umum: URL bukan `/exec`, environment variable belum diisi, deployment GAS belum diperbarui, atau akses Web App bukan `Anyone`.
 

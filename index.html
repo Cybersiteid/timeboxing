@@ -3,7 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17202a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Time Boxing">
   <title>Task Time Boxing</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <style>
     :root {
       color-scheme: light;
@@ -169,6 +176,16 @@
     .data-tool:focus-visible {
       outline: 3px solid rgba(15, 118, 110, 0.2);
       outline-offset: 2px;
+    }
+
+    .install-tool[hidden] {
+      display: none;
+    }
+
+    .install-tool {
+      background: #17202a;
+      border-color: #17202a;
+      color: #ffffff;
     }
 
     .sync-status {
@@ -440,6 +457,47 @@
     body.view-ideas main {
       grid-template-columns: minmax(0, 760px);
       justify-content: center;
+    }
+
+    .archive-only {
+      display: none;
+    }
+
+    body.view-archive .composer,
+    body.view-archive .stats,
+    body.view-archive .toolbar {
+      display: none;
+    }
+
+    body.view-archive .archive-only {
+      display: flex;
+    }
+
+    body.view-archive main {
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+    }
+
+    .archive-header {
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .archive-header h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .archive-header span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .idea-panel-header {
@@ -1108,8 +1166,19 @@
         Inbox & Rencana
         <span class="nav-count" id="ideaNavCount">0</span>
       </button>
+      <button class="view-tab" type="button" data-view="archive">
+        Arsip
+        <span class="nav-count" id="archiveNavCount">0</span>
+      </button>
       <div class="data-tools">
         <span class="sync-status" id="syncStatus">Tersimpan lokal</span>
+        <button class="data-tool install-tool" id="installApp" type="button" title="Instal aplikasi" aria-label="Instal aplikasi" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <path d="m7 10 5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </button>
         <button class="data-tool" id="accessKeyButton" type="button" title="Ganti kunci akses">#</button>
         <button class="data-tool export-tool" id="exportData" type="button" title="Ekspor data" aria-label="Ekspor data">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1206,6 +1275,13 @@
           <div class="idea-list" id="ideaList"></div>
         </section>
 
+        <div class="archive-header archive-only">
+          <div>
+            <h2>Arsip task selesai</h2>
+            <span id="archiveSummary">0 task tersimpan</span>
+          </div>
+        </div>
+
         <div class="stats task-only" aria-label="Ringkasan task">
           <div class="stat"><b id="statTotal">0</b><span>Total</span></div>
           <div class="stat"><b id="statOpen">0</b><span>Aktif</span></div>
@@ -1299,7 +1375,7 @@
     const ideaStoreKey = "timeBoxIdeas:v1";
     const dirtyStoreKey = "timeBoxSyncDirty:v1";
     const accessKeyStoreKey = "timeBoxAccessKey:v1";
-    const remoteBackendAvailable = location.protocol === "https:" || location.hostname === "localhost";
+    const remoteBackendAvailable = location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname);
     const priorityRank = { high: 0, medium: 1, low: 2 };
     const priorityLabel = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
     const state = {
@@ -1317,6 +1393,7 @@
       syncEnabled: false,
       syncTimer: null,
       syncRetryTimer: null,
+      installPrompt: null,
       accessKey: localStorage.getItem(accessKeyStoreKey) || "",
       localRevision: 0
     };
@@ -1328,6 +1405,9 @@
       ideaList: document.querySelector("#ideaList"),
       ideaCount: document.querySelector("#ideaCount"),
       ideaNavCount: document.querySelector("#ideaNavCount"),
+      archiveNavCount: document.querySelector("#archiveNavCount"),
+      archiveSummary: document.querySelector("#archiveSummary"),
+      installApp: document.querySelector("#installApp"),
       ideaTabs: document.querySelectorAll(".idea-tab"),
       viewTabs: document.querySelectorAll(".view-tab"),
       syncStatus: document.querySelector("#syncStatus"),
@@ -1397,6 +1477,7 @@
           startTime: "09:00",
           deadline: "",
           done: false,
+          archivedAt: null,
           subtasks: [],
           subtasksCollapsed: true,
           createdAt: Date.now()
@@ -1410,6 +1491,7 @@
           startTime: "10:00",
           deadline: "",
           done: false,
+          archivedAt: null,
           subtasks: [],
           subtasksCollapsed: true,
           createdAt: Date.now() - 1
@@ -1419,6 +1501,7 @@
         ...task,
         startTime: task.startTime || "",
         deadline: task.deadline || "",
+        archivedAt: Number(task.archivedAt) || null,
         subtasksCollapsed: task.subtasksCollapsed !== false,
         subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
       }));
@@ -1498,7 +1581,9 @@
         return;
       }
       els.syncStatus.textContent = "Sinkronisasi tertunda · data lokal aman";
-      if (document.body.classList.contains("locked")) {
+      if (document.body.classList.contains("locked") && state.accessKey) {
+        unlockInterface();
+      } else if (document.body.classList.contains("locked")) {
         showAccessDialog("Belum dapat terhubung. Periksa konfigurasi Netlify lalu coba lagi.");
       }
       scheduleSyncRetry();
@@ -1557,6 +1642,7 @@
           ...task,
           startTime: task.startTime || "",
           deadline: task.deadline || "",
+          archivedAt: Number(task.archivedAt) || null,
           subtasksCollapsed: task.subtasksCollapsed !== false,
           subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
         }));
@@ -1572,7 +1658,8 @@
         stopTimer();
         state.activeId = null;
         render();
-        if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
+        const nextTask = state.tasks.find(task => !task.done && !task.archivedAt);
+        if (nextTask) chooseTask(nextTask.id);
         els.syncStatus.textContent = "Tersinkron ke Google Sheets";
         unlockInterface();
         return true;
@@ -1642,6 +1729,7 @@
         deadline: deadlineFromTargetMonth(idea.targetMonth),
         notes: idea.status === "plan" ? "Dibuat dari Rencana." : "Dibuat dari Inbox Ide.",
         done: false,
+        archivedAt: null,
         subtasks: [],
         subtasksCollapsed: true,
         createdAt: Date.now()
@@ -1665,6 +1753,7 @@
         deadline: els.deadline.value,
         notes: els.notes.value.trim(),
         done: false,
+        archivedAt: null,
         subtasks: [],
         subtasksCollapsed: true,
         createdAt: Date.now()
@@ -1684,6 +1773,7 @@
       const query = els.search.value.trim().toLowerCase();
       return state.tasks
         .filter(task => {
+          const matchesArchive = state.view === "archive" ? Boolean(task.archivedAt) : !task.archivedAt;
           const matchesFilter =
             state.filter === "all" ||
             (state.filter === "open" && !task.done) ||
@@ -1692,9 +1782,10 @@
             task.title.toLowerCase().includes(query) ||
             task.notes.toLowerCase().includes(query) ||
             task.subtasks.some(subtask => subtask.title.toLowerCase().includes(query));
-          return matchesFilter && matchesSearch;
+          return matchesArchive && matchesFilter && matchesSearch;
         })
         .sort((a, b) => {
+          if (state.view === "archive") return (b.archivedAt || 0) - (a.archivedAt || 0);
           if (els.sortBy.value === "manual") return 0;
           if (els.sortBy.value === "priority") return priorityRank[a.priority] - priorityRank[b.priority];
           if (els.sortBy.value === "duration") return b.minutes - a.minutes;
@@ -1703,8 +1794,9 @@
     }
 
     function setView(view) {
-      state.view = view === "ideas" ? "ideas" : "tasks";
+      state.view = ["tasks", "ideas", "archive"].includes(view) ? view : "tasks";
       document.body.classList.toggle("view-ideas", state.view === "ideas");
+      document.body.classList.toggle("view-archive", state.view === "archive");
       els.viewTabs.forEach(tab => {
         const active = tab.dataset.view === state.view;
         tab.classList.toggle("active", active);
@@ -1713,6 +1805,8 @@
       if (state.view === "ideas") {
         renderIdeas();
         requestAnimationFrame(() => els.ideaTitle.focus());
+      } else {
+        render();
       }
     }
 
@@ -1767,11 +1861,11 @@
       renderIdeas();
       renderStats();
       renderTimer();
-      document.body.classList.toggle("manual-sort", els.sortBy.value === "manual");
+      document.body.classList.toggle("manual-sort", els.sortBy.value === "manual" && state.view === "tasks");
       const tasks = visibleTasks();
 
       if (tasks.length === 0) {
-        els.list.innerHTML = '<div class="empty">Tidak ada task yang cocok.</div>';
+        els.list.innerHTML = `<div class="empty">${state.view === "archive" ? "Belum ada task yang diarsipkan." : "Tidak ada task yang cocok."}</div>`;
         return;
       }
 
@@ -1779,7 +1873,7 @@
         const completedSubtasks = task.subtasks.filter(subtask => subtask.done).length;
         return `
         <article class="task ${task.done ? "done" : ""}" data-id="${task.id}">
-          <button class="check" type="button" title="Tandai selesai" data-action="toggle">${task.done ? "✓" : ""}</button>
+          <button class="check" type="button" title="${state.view === "archive" ? "Task selesai" : "Tandai selesai"}" data-action="toggle" ${state.view === "archive" ? "disabled" : ""}>${task.done ? "✓" : ""}</button>
           <div class="task-content">
             <h2>${escapeHtml(task.title)}</h2>
             <div class="meta">
@@ -1788,6 +1882,7 @@
               <span class="badge">Dibuat ${formatCreatedAt(task.createdAt)}</span>
               ${task.startTime ? `<span class="badge schedule">${timeRange(task.startTime, task.minutes)}</span>` : ""}
               ${deadlineBadge(task)}
+              ${task.archivedAt ? `<span class="badge">Diarsipkan ${formatCreatedAt(task.archivedAt)}</span>` : ""}
               ${state.activeId === task.id ? '<span class="badge">Di timer</span>' : ""}
             </div>
             ${task.notes ? `<p class="notes">${escapeHtml(task.notes)}</p>` : ""}
@@ -1804,25 +1899,31 @@
                   <div class="subtask-list">
                     ${task.subtasks.map(subtask => `
                       <div class="subtask-item ${subtask.done ? "done" : ""}" data-subtask-id="${subtask.id}">
-                        <button class="subtask-check" type="button" title="Tandai subtask selesai" data-action="toggle-subtask">${subtask.done ? "✓" : ""}</button>
+                        <button class="subtask-check" type="button" title="Tandai subtask selesai" data-action="toggle-subtask" ${state.view === "archive" ? "disabled" : ""}>${subtask.done ? "✓" : ""}</button>
                         <span class="subtask-title">${escapeHtml(subtask.title)}</span>
-                        <button class="subtask-delete" type="button" title="Hapus subtask" data-action="delete-subtask">×</button>
+                        ${state.view !== "archive" ? '<button class="subtask-delete" type="button" title="Hapus subtask" data-action="delete-subtask">×</button>' : ""}
                       </div>
                     `).join("")}
                   </div>
                 ` : ""}
-                <form class="subtask-form" data-action="add-subtask">
+                ${state.view !== "archive" ? `<form class="subtask-form" data-action="add-subtask">
                   <input name="subtask" maxlength="90" required aria-label="Nama subtask" placeholder="Tambah subtask...">
                   <button class="subtask-add" type="submit" title="Tambah subtask">+</button>
-                </form>
+                </form>` : ""}
               </div>
             </div>
           </div>
           <div class="actions">
-            <button class="square drag-handle" draggable="true" type="button" title="Seret untuk mengurutkan" data-action="drag">↕</button>
-            <button class="square" type="button" title="Edit task" data-action="edit">✎</button>
-            <button class="square" type="button" title="Pakai di timer" data-action="select">▶</button>
-            <button class="square danger" type="button" title="Hapus task" data-action="delete">×</button>
+            ${state.view === "archive" ? `
+              <button class="square" type="button" title="Pulihkan task" aria-label="Pulihkan task" data-action="restore">↶</button>
+              <button class="square danger" type="button" title="Hapus permanen" aria-label="Hapus permanen" data-action="delete">×</button>
+            ` : `
+              <button class="square drag-handle" draggable="true" type="button" title="Seret untuk mengurutkan" data-action="drag">↕</button>
+              <button class="square" type="button" title="Edit task" data-action="edit">✎</button>
+              ${!task.done ? '<button class="square" type="button" title="Pakai di timer" data-action="select">▶</button>' : ""}
+              ${task.done ? '<button class="square" type="button" title="Arsipkan task" aria-label="Arsipkan task" data-action="archive">□</button>' : ""}
+              <button class="square danger" type="button" title="Hapus task" data-action="delete">×</button>
+            `}
           </div>
         </article>
       `}).join("");
@@ -1866,15 +1967,19 @@
     }
 
     function renderStats() {
-      const total = state.tasks.length;
-      const done = state.tasks.filter(task => task.done).length;
+      const activeTasks = state.tasks.filter(task => !task.archivedAt);
+      const archived = state.tasks.filter(task => task.archivedAt).length;
+      const total = activeTasks.length;
+      const done = activeTasks.filter(task => task.done).length;
       const open = total - done;
-      const minutes = state.tasks.filter(task => !task.done).reduce((sum, task) => sum + task.minutes, 0);
+      const minutes = activeTasks.filter(task => !task.done).reduce((sum, task) => sum + task.minutes, 0);
 
       els.statTotal.textContent = total;
       els.statOpen.textContent = open;
       els.statDone.textContent = done;
       els.statMinutes.textContent = `${minutes}m`;
+      els.archiveNavCount.textContent = archived;
+      els.archiveSummary.textContent = `${archived} task tersimpan`;
     }
 
     function renderTimer() {
@@ -1895,7 +2000,7 @@
 
     function chooseTask(id) {
       const task = state.tasks.find(item => item.id === id);
-      if (!task) return;
+      if (!task || task.archivedAt || task.done) return;
       stopTimer();
       state.activeId = task.id;
       state.timerTotal = task.minutes * 60;
@@ -1905,7 +2010,7 @@
 
     function toggleTask(id) {
       const task = state.tasks.find(item => item.id === id);
-      if (!task) return;
+      if (!task || task.archivedAt) return;
       task.done = !task.done;
       if (task.subtasks.length) {
         task.subtasks.forEach(subtask => subtask.done = task.done);
@@ -2015,6 +2120,8 @@
     }
 
     function deleteTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (task?.archivedAt && !window.confirm(`Hapus permanen "${task.title}"?`)) return;
       state.tasks = state.tasks.filter(task => task.id !== id);
       if (state.activeId === id) {
         stopTimer();
@@ -2022,6 +2129,26 @@
         state.timerTotal = 25 * 60;
         state.secondsLeft = state.timerTotal;
       }
+      saveTasks();
+      render();
+    }
+
+    function archiveTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task || !task.done) return;
+      task.archivedAt = Date.now();
+      if (state.activeId === id) {
+        stopTimer();
+        state.activeId = null;
+      }
+      saveTasks();
+      render();
+    }
+
+    function restoreTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      task.archivedAt = null;
       saveTasks();
       render();
     }
@@ -2080,7 +2207,7 @@
     }
 
     function currentTask() {
-      return state.tasks.find(task => task.id === state.activeId && !task.done);
+      return state.tasks.find(task => task.id === state.activeId && !task.done && !task.archivedAt);
     }
 
     function escapeHtml(value) {
@@ -2116,10 +2243,11 @@
         if (!Array.isArray(payload.tasks) || !Array.isArray(payload.ideas)) {
           throw new Error("Format backup tidak valid.");
         }
-        state.tasks = payload.tasks.map(task => ({
+      state.tasks = payload.tasks.map(task => ({
           ...task,
           startTime: task.startTime || "",
           deadline: task.deadline || "",
+          archivedAt: Number(task.archivedAt) || null,
           subtasksCollapsed: task.subtasksCollapsed !== false,
           subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
         }));
@@ -2231,6 +2359,8 @@
       if (button.dataset.action === "toggle-subtasks") toggleSubtasks(id);
       if (button.dataset.action === "edit") openEditTask(id);
       if (button.dataset.action === "select") chooseTask(id);
+      if (button.dataset.action === "archive") archiveTask(id);
+      if (button.dataset.action === "restore") restoreTask(id);
       if (button.dataset.action === "delete") deleteTask(id);
       if (button.dataset.action === "toggle-subtask") {
         toggleSubtask(id, button.closest(".subtask-item").dataset.subtaskId);
@@ -2285,15 +2415,53 @@
       });
     });
 
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      state.installPrompt = event;
+      els.installApp.hidden = false;
+    });
+
+    els.installApp.addEventListener("click", async () => {
+      if (!state.installPrompt) return;
+      await state.installPrompt.prompt();
+      state.installPrompt = null;
+      els.installApp.hidden = true;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      state.installPrompt = null;
+      els.installApp.hidden = true;
+    });
+
+    window.addEventListener("online", () => {
+      if (state.accessKey) syncFromServer();
+    });
+
+    window.addEventListener("offline", () => {
+      els.syncStatus.textContent = "Offline · data lokal aman";
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(error => console.error(error));
+      });
+    }
+
     initDate();
     loadTasks();
     loadIdeas();
     state.syncEnabled = true;
     setView("tasks");
-    if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
+    const firstActiveTask = state.tasks.find(task => !task.done && !task.archivedAt);
+    if (firstActiveTask) chooseTask(firstActiveTask.id);
     render();
-    showAccessDialog(state.accessKey ? "Memeriksa kunci tersimpan..." : "");
-    if (state.accessKey) syncFromServer();
+    if (state.accessKey && !navigator.onLine) {
+      unlockInterface();
+      els.syncStatus.textContent = "Offline · data lokal aman";
+    } else {
+      showAccessDialog(state.accessKey ? "Memeriksa kunci tersimpan..." : "");
+      if (state.accessKey) syncFromServer();
+    }
   </script>
 </body>
 </html>
