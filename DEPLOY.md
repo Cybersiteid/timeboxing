@@ -77,6 +77,30 @@ Setelah deployment Netlify selesai, buka aplikasi melalui Chrome atau Edge. Tomb
 
 Halaman utama, ikon, dan data lokal dapat dibuka saat offline. Perubahan lokal akan dikirim ke Google Sheets setelah koneksi kembali dan kunci akses masih tersimpan pada perangkat.
 
+## Mode gelap
+
+Klik tombol bulan atau matahari di kanan atas aplikasi untuk mengganti tema. Pilihan disimpan pada perangkat dan digunakan kembali saat aplikasi dibuka. Jika belum pernah memilih tema, aplikasi mengikuti pengaturan terang atau gelap dari sistem.
+
+## Task berulang
+
+Pilih `Setiap hari`, `Setiap minggu`, atau `Setiap bulan` pada kolom **Ulangi**. Task berulang yang belum memiliki deadline akan dimulai dari hari ini. Saat task ditandai selesai, aplikasi otomatis membuat satu task berikutnya dengan subtask yang kembali belum tercentang.
+
+Metadata pengulangan, waktu selesai, dan catatan fokus ikut disimpan melalui JSON subtask yang sudah didukung backend GAS. Tidak diperlukan environment variable atau perubahan `Code.gs` tambahan untuk versi ini.
+
+## Kalender
+
+Buka menu **Kalender** untuk melihat task berdasarkan deadline. Pada komputer, seret task ke tanggal tujuan untuk mengubah deadline. Klik nama task untuk membuka editor. Klik angka tanggal untuk kembali ke form task dengan deadline yang sudah terisi; cara ini juga nyaman digunakan di HP.
+
+## Pengingat
+
+Klik tombol lonceng di kanan atas lalu izinkan notifikasi browser. Aplikasi memberi pengingat 15 menit sebelum waktu mulai, pada hari deadline untuk task tanpa jam mulai, dan ketika task terlambat. Klik lonceng lagi untuk menonaktifkannya.
+
+Pengingat berjalan saat aplikasi atau PWA sedang terbuka. Fitur ini tidak memakai layanan push eksternal, sehingga browser yang benar-benar ditutup tidak dapat menjalankan pengingat terjadwal.
+
+## Dashboard produktivitas
+
+Menu **Dashboard** menampilkan task selesai minggu berjalan, waktu fokus yang dicatat timer, task terlambat, persentase pencapaian, grafik harian, rutinitas aktif, dan total fokus. Data task lama tetap dapat dibuka; statistik waktu fokus mulai bertambah setelah timer versi ini digunakan.
+
 Jika status `Offline - tersimpan lokal`, periksa log fungsi `data`. Penyebab umum: URL bukan `/exec`, environment variable belum diisi, deployment GAS belum diperbarui, atau akses Web App bukan `Anyone`.
 
 ## Memindahkan data lama

@@ -1,4 +1,4 @@
-const CACHE_NAME = "task-timeboxing-v1";
+const CACHE_NAME = "task-timeboxing-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -47,5 +47,15 @@ self.addEventListener("fetch", event => {
       caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
       return response;
     }))
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(windows => {
+      const existing = windows.find(client => new URL(client.url).origin === self.location.origin);
+      return existing ? existing.focus() : self.clients.openWindow("/");
+    })
   );
 });

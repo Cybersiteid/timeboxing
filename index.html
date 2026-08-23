@@ -11,6 +11,17 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem("timeBoxTheme:v1");
+        const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = savedTheme || (systemDark ? "dark" : "light");
+      } catch {
+        document.documentElement.dataset.theme = "light";
+      }
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light;
@@ -26,6 +37,20 @@
       --shadow: 0 18px 55px rgba(23, 32, 42, 0.12);
       --radius: 8px;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #151719;
+      --panel: #202326;
+      --ink: #f4f7f8;
+      --muted: #a9b0b6;
+      --line: #3a4045;
+      --accent: #2dd4bf;
+      --accent-2: #fbbf24;
+      --danger: #fb7185;
+      --done: #4ade80;
+      --shadow: 0 18px 55px rgba(0, 0, 0, 0.3);
     }
 
     * {
@@ -150,6 +175,12 @@
       pointer-events: none;
     }
 
+    .data-tool[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: #e9f7f5;
+      color: var(--accent);
+    }
+
     .data-tool.export-tool {
       background: #ecfdf5;
       border-color: #a7f3d0;
@@ -186,6 +217,18 @@
       background: #17202a;
       border-color: #17202a;
       color: #ffffff;
+    }
+
+    .theme-icon-sun {
+      display: none;
+    }
+
+    :root[data-theme="dark"] .theme-icon-moon {
+      display: none;
+    }
+
+    :root[data-theme="dark"] .theme-icon-sun {
+      display: block;
     }
 
     .sync-status {
@@ -478,6 +521,33 @@
       justify-content: center;
     }
 
+    .calendar-only,
+    .dashboard-only {
+      display: none;
+    }
+
+    body.view-calendar .composer,
+    body.view-calendar .task-only,
+    body.view-calendar .idea-panel,
+    body.view-calendar .archive-only,
+    body.view-dashboard .composer,
+    body.view-dashboard .task-only,
+    body.view-dashboard .idea-panel,
+    body.view-dashboard .archive-only {
+      display: none;
+    }
+
+    body.view-calendar .calendar-only,
+    body.view-dashboard .dashboard-only {
+      display: block;
+    }
+
+    body.view-calendar main,
+    body.view-dashboard main {
+      grid-template-columns: minmax(0, 900px);
+      justify-content: center;
+    }
+
     .archive-header {
       align-items: center;
       justify-content: space-between;
@@ -700,6 +770,282 @@
     .task-list {
       display: grid;
       gap: 8px;
+    }
+
+    .workspace-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .workspace-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .workspace-header h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .workspace-header p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .calendar-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .calendar-month {
+      min-width: 130px;
+      color: var(--ink);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .compact-button {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .calendar-weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .calendar-weekdays {
+      border-bottom: 1px solid var(--line);
+      background: #f7f9fb;
+    }
+
+    .calendar-weekdays span {
+      padding: 7px 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .calendar-day {
+      min-width: 0;
+      min-height: 104px;
+      padding: 6px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .calendar-day:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .calendar-day.outside {
+      background: #f8fafc;
+      color: var(--muted);
+    }
+
+    .calendar-day.today-cell {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .calendar-day.drag-target {
+      background: #ecfdf5;
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .calendar-date {
+      display: grid;
+      place-items: center;
+      width: 23px;
+      height: 23px;
+      margin: 0 0 4px auto;
+      border-radius: 50%;
+      color: inherit;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .today-cell .calendar-date {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .calendar-events {
+      display: grid;
+      gap: 3px;
+    }
+
+    .calendar-task {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      padding: 4px 5px;
+      overflow: hidden;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      background: #e9f7f5;
+      color: #115e59;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.25;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: grab;
+    }
+
+    .calendar-task.priority-high {
+      border-left-color: #dc2626;
+      background: #fff1f2;
+      color: #9f1239;
+    }
+
+    .calendar-task.done {
+      opacity: 0.55;
+      text-decoration: line-through;
+    }
+
+    .calendar-more {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .calendar-empty-note {
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .productivity-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfd;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .dashboard-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+      gap: 16px;
+      padding: 2px 12px 14px;
+    }
+
+    .chart-panel,
+    .insight-panel {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .chart-panel h3,
+    .insight-panel h3 {
+      margin: 0 0 12px;
+      font-size: 13px;
+    }
+
+    .weekly-chart {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 7px;
+      height: 150px;
+      align-items: end;
+    }
+
+    .chart-day {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 6px;
+      height: 100%;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .chart-track {
+      display: flex;
+      align-items: end;
+      min-height: 0;
+      border-radius: 4px;
+      background: #edf1f4;
+      overflow: hidden;
+    }
+
+    .chart-bar {
+      width: 100%;
+      min-height: 3px;
+      background: var(--accent);
+      transition: height 220ms ease;
+    }
+
+    .insight-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .insight-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .insight-row:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .insight-row strong {
+      color: var(--ink);
+      text-align: right;
     }
 
     .task {
@@ -1086,6 +1432,208 @@
       font-weight: 800;
     }
 
+    :root[data-theme="dark"] body {
+      background: linear-gradient(180deg, #111315 0%, var(--bg) 42%, #101214 100%);
+    }
+
+    :root[data-theme="dark"] .view-tab:hover,
+    :root[data-theme="dark"] .icon-btn:hover,
+    :root[data-theme="dark"] .small-btn:hover,
+    :root[data-theme="dark"] .idea-action:hover,
+    :root[data-theme="dark"] .square:hover {
+      background: #30353a;
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .view-tab.active,
+    :root[data-theme="dark"] .idea-tab.active,
+    :root[data-theme="dark"] .segment.active,
+    :root[data-theme="dark"] .subtask-add {
+      background: var(--accent);
+      color: #082f2a;
+    }
+
+    :root[data-theme="dark"] .nav-count {
+      background: #34393e;
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .view-tab.active .nav-count {
+      background: #0f3d37;
+      color: #ccfbf1;
+    }
+
+    :root[data-theme="dark"] .data-tool,
+    :root[data-theme="dark"] input,
+    :root[data-theme="dark"] select,
+    :root[data-theme="dark"] textarea,
+    :root[data-theme="dark"] .icon-btn,
+    :root[data-theme="dark"] .small-btn,
+    :root[data-theme="dark"] .idea-action,
+    :root[data-theme="dark"] .square,
+    :root[data-theme="dark"] .secondary,
+    :root[data-theme="dark"] .dialog-close {
+      background: #272b2f;
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    :root[data-theme="dark"] .install-tool {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #082f2a;
+    }
+
+    :root[data-theme="dark"] .export-tool {
+      background: #12382d;
+      border-color: #27765e;
+      color: #6ee7b7;
+    }
+
+    :root[data-theme="dark"] .import-tool {
+      background: #182f4d;
+      border-color: #315b8c;
+      color: #93c5fd;
+    }
+
+    :root[data-theme="dark"] .data-tool[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: #173d38;
+      color: #99f6e4;
+    }
+
+    :root[data-theme="dark"] label,
+    :root[data-theme="dark"] .notes {
+      color: #c7cdd2;
+    }
+
+    :root[data-theme="dark"] input::placeholder,
+    :root[data-theme="dark"] textarea::placeholder {
+      color: #818a91;
+    }
+
+    :root[data-theme="dark"] .primary,
+    :root[data-theme="dark"] #startPause,
+    :root[data-theme="dark"] .idea-add {
+      background: var(--accent);
+      color: #082f2a;
+    }
+
+    :root[data-theme="dark"] .primary:hover,
+    :root[data-theme="dark"] #startPause:hover {
+      background: #5eead4;
+    }
+
+    :root[data-theme="dark"] .timer-face {
+      background: conic-gradient(var(--accent) var(--progress), #383e43 0);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+    }
+
+    :root[data-theme="dark"] .timer-face::before {
+      border-color: #444a50;
+      background: linear-gradient(145deg, #24282c, #191c1f);
+      box-shadow: inset 0 1px 0 #4a5055;
+    }
+
+    :root[data-theme="dark"] .idea-tabs,
+    :root[data-theme="dark"] .subtask-item {
+      background: #282c30;
+    }
+
+    :root[data-theme="dark"] .idea-item {
+      border-bottom-color: #343a3f;
+    }
+
+    :root[data-theme="dark"] .task.done {
+      background: #1d2b25;
+    }
+
+    :root[data-theme="dark"] .check,
+    :root[data-theme="dark"] .subtask-check {
+      background: #181b1e;
+      border-color: #596168;
+    }
+
+    :root[data-theme="dark"] .task.done .check,
+    :root[data-theme="dark"] .subtask-item.done .subtask-check {
+      background: #163b2a;
+      border-color: var(--done);
+    }
+
+    :root[data-theme="dark"] .badge {
+      background: #34393e;
+      color: #d9dee2;
+    }
+
+    :root[data-theme="dark"] .badge.high,
+    :root[data-theme="dark"] .badge.overdue {
+      background: #4a2027;
+      color: #fda4af;
+    }
+
+    :root[data-theme="dark"] .badge.medium {
+      background: #493916;
+      color: #fde68a;
+    }
+
+    :root[data-theme="dark"] .badge.low {
+      background: #1d3553;
+      color: #93c5fd;
+    }
+
+    :root[data-theme="dark"] .badge.schedule {
+      background: #123d49;
+      color: #67e8f9;
+    }
+
+    :root[data-theme="dark"] .badge.deadline {
+      background: #3b2551;
+      color: #d8b4fe;
+    }
+
+    :root[data-theme="dark"] .badge.today-due {
+      background: #4a2b17;
+      color: #fdba74;
+    }
+
+    :root[data-theme="dark"] .subtask-delete:hover {
+      background: #4a2027;
+    }
+
+    :root[data-theme="dark"] .empty {
+      border-color: #50575d;
+      background: rgba(32, 35, 38, 0.72);
+    }
+
+    :root[data-theme="dark"] dialog {
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52);
+    }
+
+    :root[data-theme="dark"] dialog::backdrop {
+      background: rgba(0, 0, 0, 0.68);
+    }
+
+    :root[data-theme="dark"] .calendar-weekdays,
+    :root[data-theme="dark"] .calendar-day.outside,
+    :root[data-theme="dark"] .metric,
+    :root[data-theme="dark"] .chart-track {
+      background: #292d31;
+    }
+
+    :root[data-theme="dark"] .calendar-day.drag-target {
+      background: #173d38;
+    }
+
+    :root[data-theme="dark"] .calendar-task {
+      background: #173d38;
+      color: #99f6e4;
+    }
+
+    :root[data-theme="dark"] .calendar-task.priority-high {
+      background: #481f2a;
+      color: #fecdd3;
+    }
+
     @media (max-width: 860px) {
       header,
       main {
@@ -1099,6 +1647,14 @@
       .toolbar,
       .stats {
         grid-template-columns: 1fr 1fr;
+      }
+
+      .productivity-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-body {
+        grid-template-columns: 1fr;
       }
 
       .segmented {
@@ -1135,6 +1691,54 @@
         grid-template-columns: auto 1fr;
       }
 
+      .workspace-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .calendar-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .calendar-month {
+        min-width: 0;
+      }
+
+      .calendar-day {
+        min-height: 82px;
+        padding: 3px;
+      }
+
+      .calendar-date {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 2px;
+        font-size: 10px;
+      }
+
+      .calendar-task {
+        padding: 3px;
+        font-size: 9px;
+      }
+
+      .calendar-more {
+        font-size: 9px;
+      }
+
+      .productivity-grid {
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .metric {
+        padding: 9px;
+      }
+
+      .dashboard-body {
+        padding: 0 8px 8px;
+      }
+
       .actions {
         grid-column: 1 / -1;
         grid-auto-flow: column;
@@ -1166,6 +1770,8 @@
         Inbox & Rencana
         <span class="nav-count" id="ideaNavCount">0</span>
       </button>
+      <button class="view-tab" type="button" data-view="calendar">Kalender</button>
+      <button class="view-tab" type="button" data-view="dashboard">Dashboard</button>
       <button class="view-tab" type="button" data-view="archive">
         Arsip
         <span class="nav-count" id="archiveNavCount">0</span>
@@ -1177,6 +1783,28 @@
             <path d="M12 3v12"></path>
             <path d="m7 10 5 5 5-5"></path>
             <path d="M5 21h14"></path>
+          </svg>
+        </button>
+        <button class="data-tool" id="reminderToggle" type="button" title="Aktifkan pengingat" aria-label="Aktifkan pengingat">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+            <path d="M10 21h4"></path>
+          </svg>
+        </button>
+        <button class="data-tool theme-tool" id="themeToggle" type="button" title="Gunakan mode gelap" aria-label="Gunakan mode gelap">
+          <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path>
+          </svg>
+          <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.42 1.42"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
           </svg>
         </button>
         <button class="data-tool" id="accessKeyButton" type="button" title="Ganti kunci akses">#</button>
@@ -1220,6 +1848,16 @@
                 <option value="low">Rendah</option>
               </select>
             </div>
+          </div>
+
+          <div class="field">
+            <label for="recurrence">Ulangi</label>
+            <select id="recurrence" name="recurrence">
+              <option value="none" selected>Tidak berulang</option>
+              <option value="daily">Setiap hari</option>
+              <option value="weekly">Setiap minggu</option>
+              <option value="monthly">Setiap bulan</option>
+            </select>
           </div>
 
           <div class="form-row">
@@ -1273,6 +1911,51 @@
             <button class="idea-tab" type="button" data-idea-filter="archived">Arsip</button>
           </div>
           <div class="idea-list" id="ideaList"></div>
+        </section>
+
+        <section class="workspace-panel calendar-only" aria-label="Kalender task">
+          <div class="workspace-header">
+            <div>
+              <h2>Kalender task</h2>
+              <p>Seret task ke tanggal lain untuk memindahkan jadwal.</p>
+            </div>
+            <div class="calendar-controls">
+              <button class="compact-button" id="calendarPrev" type="button" title="Bulan sebelumnya" aria-label="Bulan sebelumnya">‹</button>
+              <span class="calendar-month" id="calendarMonth">-</span>
+              <button class="compact-button" id="calendarToday" type="button" title="Kembali ke bulan ini" aria-label="Kembali ke bulan ini">●</button>
+              <button class="compact-button" id="calendarNext" type="button" title="Bulan berikutnya" aria-label="Bulan berikutnya">›</button>
+            </div>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="calendar-empty-note" id="calendarNote">Task tanpa deadline tidak muncul di kalender.</div>
+        </section>
+
+        <section class="workspace-panel dashboard-only" aria-label="Dashboard produktivitas">
+          <div class="workspace-header">
+            <div>
+              <h2>Produktivitas minggu ini</h2>
+              <p id="dashboardPeriod">-</p>
+            </div>
+          </div>
+          <div class="productivity-grid">
+            <div class="metric"><b id="metricCompleted">0</b><span>Task selesai</span></div>
+            <div class="metric"><b id="metricFocus">0m</b><span>Waktu fokus</span></div>
+            <div class="metric"><b id="metricOverdue">0</b><span>Terlambat</span></div>
+            <div class="metric"><b id="metricRate">0%</b><span>Pencapaian</span></div>
+          </div>
+          <div class="dashboard-body">
+            <section class="chart-panel">
+              <h3>Task selesai per hari</h3>
+              <div class="weekly-chart" id="weeklyChart"></div>
+            </section>
+            <section class="insight-panel">
+              <h3>Ringkasan</h3>
+              <div class="insight-list" id="insightList"></div>
+            </section>
+          </div>
         </section>
 
         <div class="archive-header archive-only">
@@ -1334,6 +2017,15 @@
           </select>
         </div>
       </div>
+      <div class="field">
+        <label for="editRecurrence">Ulangi</label>
+        <select id="editRecurrence">
+          <option value="none">Tidak berulang</option>
+          <option value="daily">Setiap hari</option>
+          <option value="weekly">Setiap minggu</option>
+          <option value="monthly">Setiap bulan</option>
+        </select>
+      </div>
       <div class="form-row">
         <div class="field">
           <label for="editStartTime">Mulai</label>
@@ -1375,9 +2067,14 @@
     const ideaStoreKey = "timeBoxIdeas:v1";
     const dirtyStoreKey = "timeBoxSyncDirty:v1";
     const accessKeyStoreKey = "timeBoxAccessKey:v1";
+    const themeStoreKey = "timeBoxTheme:v1";
+    const reminderHistoryKey = "timeBoxReminderHistory:v1";
+    const reminderEnabledKey = "timeBoxRemindersEnabled:v1";
+    const remoteMetaId = "__timeboxing_meta_v2__";
     const remoteBackendAvailable = location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname);
     const priorityRank = { high: 0, medium: 1, low: 2 };
     const priorityLabel = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
+    const recurrenceLabel = { none: "", daily: "Harian", weekly: "Mingguan", monthly: "Bulanan" };
     const state = {
       tasks: [],
       ideas: [],
@@ -1394,6 +2091,12 @@
       syncTimer: null,
       syncRetryTimer: null,
       installPrompt: null,
+      calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      calendarDraggedId: null,
+      reminderTimer: null,
+      remindersEnabled: localStorage.getItem(reminderEnabledKey) === "true",
+      focusDirty: false,
+      focusSaveCounter: 0,
       accessKey: localStorage.getItem(accessKeyStoreKey) || "",
       localRevision: 0
     };
@@ -1408,9 +2111,11 @@
       archiveNavCount: document.querySelector("#archiveNavCount"),
       archiveSummary: document.querySelector("#archiveSummary"),
       installApp: document.querySelector("#installApp"),
+      reminderToggle: document.querySelector("#reminderToggle"),
       ideaTabs: document.querySelectorAll(".idea-tab"),
       viewTabs: document.querySelectorAll(".view-tab"),
       syncStatus: document.querySelector("#syncStatus"),
+      themeToggle: document.querySelector("#themeToggle"),
       accessKeyButton: document.querySelector("#accessKeyButton"),
       accessDialog: document.querySelector("#accessDialog"),
       accessForm: document.querySelector("#accessForm"),
@@ -1423,6 +2128,7 @@
       title: document.querySelector("#title"),
       minutes: document.querySelector("#minutes"),
       priority: document.querySelector("#priority"),
+      recurrence: document.querySelector("#recurrence"),
       startTime: document.querySelector("#startTime"),
       deadline: document.querySelector("#deadline"),
       notes: document.querySelector("#notes"),
@@ -1442,12 +2148,26 @@
       statMinutes: document.querySelector("#statMinutes"),
       todayDay: document.querySelector("#todayDay"),
       todayDate: document.querySelector("#todayDate"),
+      calendarGrid: document.querySelector("#calendarGrid"),
+      calendarMonth: document.querySelector("#calendarMonth"),
+      calendarPrev: document.querySelector("#calendarPrev"),
+      calendarToday: document.querySelector("#calendarToday"),
+      calendarNext: document.querySelector("#calendarNext"),
+      calendarNote: document.querySelector("#calendarNote"),
+      dashboardPeriod: document.querySelector("#dashboardPeriod"),
+      metricCompleted: document.querySelector("#metricCompleted"),
+      metricFocus: document.querySelector("#metricFocus"),
+      metricOverdue: document.querySelector("#metricOverdue"),
+      metricRate: document.querySelector("#metricRate"),
+      weeklyChart: document.querySelector("#weeklyChart"),
+      insightList: document.querySelector("#insightList"),
       editDialog: document.querySelector("#editDialog"),
       editForm: document.querySelector("#editForm"),
       editId: document.querySelector("#editId"),
       editTitle: document.querySelector("#editTitle"),
       editMinutes: document.querySelector("#editMinutes"),
       editPriority: document.querySelector("#editPriority"),
+      editRecurrence: document.querySelector("#editRecurrence"),
       editStartTime: document.querySelector("#editStartTime"),
       editDeadline: document.querySelector("#editDeadline"),
       editNotes: document.querySelector("#editNotes"),
@@ -1463,6 +2183,62 @@
         month: "long",
         year: "numeric"
       }).format(now);
+    }
+
+    function applyTheme(theme, persist = true) {
+      const nextTheme = theme === "dark" ? "dark" : "light";
+      const isDark = nextTheme === "dark";
+      document.documentElement.dataset.theme = nextTheme;
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", isDark ? "#151719" : "#17202a");
+      els.themeToggle.title = isDark ? "Gunakan mode terang" : "Gunakan mode gelap";
+      els.themeToggle.setAttribute("aria-label", els.themeToggle.title);
+      els.themeToggle.setAttribute("aria-pressed", String(isDark));
+      if (persist) localStorage.setItem(themeStoreKey, nextTheme);
+    }
+
+    function toggleTheme() {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    }
+
+    function normalizeTask(task) {
+      const rawSubtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+      const remoteMeta = rawSubtasks.find(subtask => subtask?.id === remoteMetaId)?.meta || {};
+      const recurrenceValue = task.recurrence || remoteMeta.recurrence;
+      const recurrence = ["daily", "weekly", "monthly"].includes(recurrenceValue) ? recurrenceValue : "none";
+      return {
+        ...task,
+        startTime: task.startTime || "",
+        deadline: task.deadline || "",
+        archivedAt: Number(task.archivedAt) || null,
+        completedAt: Number(task.completedAt || remoteMeta.completedAt) || (task.done ? Number(task.archivedAt) || Number(task.createdAt) || null : null),
+        focusSeconds: Math.max(0, Number(task.focusSeconds ?? remoteMeta.focusSeconds) || 0),
+        focusLog: (task.focusLog || remoteMeta.focusLog) && typeof (task.focusLog || remoteMeta.focusLog) === "object" && !Array.isArray(task.focusLog || remoteMeta.focusLog) ? (task.focusLog || remoteMeta.focusLog) : {},
+        recurrence,
+        seriesId: recurrence === "none" ? (task.seriesId || remoteMeta.seriesId || "") : (task.seriesId || remoteMeta.seriesId || task.id),
+        subtasksCollapsed: task.subtasksCollapsed !== false,
+        subtasks: rawSubtasks.filter(subtask => subtask?.id !== remoteMetaId)
+      };
+    }
+
+    function tasksForRemote() {
+      return state.tasks.map(task => ({
+        ...task,
+        subtasks: [
+          ...task.subtasks,
+          {
+            id: remoteMetaId,
+            title: "",
+            done: true,
+            meta: {
+              completedAt: task.completedAt,
+              focusSeconds: task.focusSeconds,
+              focusLog: task.focusLog,
+              recurrence: task.recurrence,
+              seriesId: task.seriesId
+            }
+          }
+        ]
+      }));
     }
 
     function loadTasks() {
@@ -1497,14 +2273,8 @@
           createdAt: Date.now() - 1
         }
       ];
-      state.tasks = state.tasks.map(task => ({
-        ...task,
-        startTime: task.startTime || "",
-        deadline: task.deadline || "",
-        archivedAt: Number(task.archivedAt) || null,
-        subtasksCollapsed: task.subtasksCollapsed !== false,
-        subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
-      }));
+      state.tasks = state.tasks.map(normalizeTask);
+      ensureRecurringTasks();
       saveTasks();
     }
 
@@ -1601,7 +2371,7 @@
       clearTimeout(state.syncTimer);
       els.syncStatus.textContent = "Menyinkronkan...";
       try {
-        await remoteCall("saveAppData", { tasks: state.tasks, ideas: state.ideas });
+        await remoteCall("saveAppData", { tasks: tasksForRemote(), ideas: state.ideas });
         clearTimeout(state.syncRetryTimer);
         localStorage.removeItem(dirtyStoreKey);
         els.syncStatus.textContent = "Tersinkron ke Google Sheets";
@@ -1638,14 +2408,8 @@
           return await pushServerData();
         }
 
-        state.tasks = remote.tasks.map(task => ({
-          ...task,
-          startTime: task.startTime || "",
-          deadline: task.deadline || "",
-          archivedAt: Number(task.archivedAt) || null,
-          subtasksCollapsed: task.subtasksCollapsed !== false,
-          subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
-        }));
+        state.tasks = remote.tasks.map(normalizeTask);
+        const recurringCreated = ensureRecurringTasks();
         state.ideas = remote.ideas.map(idea => ({
           ...idea,
           status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
@@ -1662,6 +2426,7 @@
         if (nextTask) chooseTask(nextTask.id);
         els.syncStatus.textContent = "Tersinkron ke Google Sheets";
         unlockInterface();
+        if (recurringCreated) saveTasks();
         return true;
       } catch (error) {
         handleSyncError(error);
@@ -1730,6 +2495,11 @@
         notes: idea.status === "plan" ? "Dibuat dari Rencana." : "Dibuat dari Inbox Ide.",
         done: false,
         archivedAt: null,
+        completedAt: null,
+        focusSeconds: 0,
+        focusLog: {},
+        recurrence: "none",
+        seriesId: "",
         subtasks: [],
         subtasksCollapsed: true,
         createdAt: Date.now()
@@ -1744,16 +2514,23 @@
 
     function addTask(event) {
       event.preventDefault();
+      const recurrence = els.recurrence.value;
+      const id = crypto.randomUUID();
       const task = {
-        id: crypto.randomUUID(),
+        id,
         title: els.title.value.trim(),
         minutes: Number(els.minutes.value),
         priority: els.priority.value,
         startTime: els.startTime.value,
-        deadline: els.deadline.value,
+        deadline: els.deadline.value || (recurrence !== "none" ? localDateKey() : ""),
         notes: els.notes.value.trim(),
         done: false,
         archivedAt: null,
+        completedAt: null,
+        focusSeconds: 0,
+        focusLog: {},
+        recurrence,
+        seriesId: recurrence === "none" ? "" : id,
         subtasks: [],
         subtasksCollapsed: true,
         createdAt: Date.now()
@@ -1765,6 +2542,7 @@
       els.form.reset();
       els.minutes.value = 25;
       els.priority.value = "medium";
+      els.recurrence.value = "none";
       render();
       chooseTask(task.id);
     }
@@ -1794,9 +2572,11 @@
     }
 
     function setView(view) {
-      state.view = ["tasks", "ideas", "archive"].includes(view) ? view : "tasks";
+      state.view = ["tasks", "ideas", "calendar", "dashboard", "archive"].includes(view) ? view : "tasks";
       document.body.classList.toggle("view-ideas", state.view === "ideas");
       document.body.classList.toggle("view-archive", state.view === "archive");
+      document.body.classList.toggle("view-calendar", state.view === "calendar");
+      document.body.classList.toggle("view-dashboard", state.view === "dashboard");
       els.viewTabs.forEach(tab => {
         const active = tab.dataset.view === state.view;
         tab.classList.toggle("active", active);
@@ -1861,6 +2641,8 @@
       renderIdeas();
       renderStats();
       renderTimer();
+      renderCalendar();
+      renderDashboard();
       document.body.classList.toggle("manual-sort", els.sortBy.value === "manual" && state.view === "tasks");
       const tasks = visibleTasks();
 
@@ -1882,6 +2664,7 @@
               <span class="badge">Dibuat ${formatCreatedAt(task.createdAt)}</span>
               ${task.startTime ? `<span class="badge schedule">${timeRange(task.startTime, task.minutes)}</span>` : ""}
               ${deadlineBadge(task)}
+              ${task.recurrence !== "none" ? `<span class="badge">↻ ${recurrenceLabel[task.recurrence]}</span>` : ""}
               ${task.archivedAt ? `<span class="badge">Diarsipkan ${formatCreatedAt(task.archivedAt)}</span>` : ""}
               ${state.activeId === task.id ? '<span class="badge">Di timer</span>' : ""}
             </div>
@@ -1953,6 +2736,185 @@
       return `${year}-${month}-${day}`;
     }
 
+    function dateFromKey(key) {
+      const [year, month, day] = key.split("-").map(Number);
+      return new Date(year, month - 1, day, 12);
+    }
+
+    function addDays(date, amount) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + amount);
+      return next;
+    }
+
+    function startOfWeek(date = new Date()) {
+      const start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+      const offset = (start.getDay() + 6) % 7;
+      return addDays(start, -offset);
+    }
+
+    function nextRecurringDate(task) {
+      const current = task.deadline ? dateFromKey(task.deadline) : new Date();
+      if (task.recurrence === "daily") return localDateKey(addDays(current, 1));
+      if (task.recurrence === "weekly") return localDateKey(addDays(current, 7));
+      if (task.recurrence === "monthly") {
+        const targetYear = current.getMonth() === 11 ? current.getFullYear() + 1 : current.getFullYear();
+        const targetMonth = (current.getMonth() + 1) % 12;
+        const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+        return localDateKey(new Date(targetYear, targetMonth, Math.min(current.getDate(), lastDay), 12));
+      }
+      return "";
+    }
+
+    function ensureNextRecurringTask(task) {
+      if (!task.done || task.recurrence === "none") return false;
+      if (!task.deadline) task.deadline = localDateKey();
+      const nextDeadline = nextRecurringDate(task);
+      const seriesId = task.seriesId || task.id;
+      task.seriesId = seriesId;
+      if (state.tasks.some(item => item.seriesId === seriesId && item.deadline === nextDeadline)) return false;
+
+      state.tasks.unshift(normalizeTask({
+        ...task,
+        id: crypto.randomUUID(),
+        deadline: nextDeadline,
+        done: false,
+        archivedAt: null,
+        completedAt: null,
+        focusSeconds: 0,
+        focusLog: {},
+        seriesId,
+        subtasks: task.subtasks.map(subtask => ({ ...subtask, id: crypto.randomUUID(), done: false })),
+        subtasksCollapsed: true,
+        createdAt: Date.now()
+      }));
+      return true;
+    }
+
+    function ensureRecurringTasks() {
+      let created = false;
+      [...state.tasks].forEach(task => {
+        if (ensureNextRecurringTask(task)) created = true;
+      });
+      return created;
+    }
+
+    function setTaskCompletion(task, done) {
+      task.done = done;
+      task.completedAt = done ? (task.completedAt || Date.now()) : null;
+      if (done) ensureNextRecurringTask(task);
+    }
+
+    function renderCalendar() {
+      const monthStart = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth(), 1, 12);
+      const gridStart = addDays(monthStart, -((monthStart.getDay() + 6) % 7));
+      const today = localDateKey();
+      els.calendarMonth.textContent = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(monthStart);
+
+      const scheduled = state.tasks.filter(task => task.deadline && !task.archivedAt);
+      const unscheduled = state.tasks.filter(task => !task.deadline && !task.archivedAt).length;
+      els.calendarNote.textContent = unscheduled
+        ? `${unscheduled} task tanpa deadline belum muncul di kalender.`
+        : "Semua task aktif sudah memiliki tanggal.";
+
+      els.calendarGrid.innerHTML = Array.from({ length: 42 }, (_, index) => {
+        const date = addDays(gridStart, index);
+        const key = localDateKey(date);
+        const dayTasks = scheduled.filter(task => task.deadline === key);
+        const outside = date.getMonth() !== monthStart.getMonth();
+        return `
+          <div class="calendar-day ${outside ? "outside" : ""} ${key === today ? "today-cell" : ""}" data-date="${key}">
+            <button class="calendar-date" type="button" data-action="new-on-date" title="Tambah task pada tanggal ini">${date.getDate()}</button>
+            <div class="calendar-events">
+              ${dayTasks.slice(0, 3).map(task => `
+                <button class="calendar-task priority-${task.priority} ${task.done ? "done" : ""}" type="button" draggable="true" data-task-id="${task.id}" title="${escapeHtml(task.title)}">
+                  ${task.startTime ? `${task.startTime} ` : ""}${escapeHtml(task.title)}
+                </button>
+              `).join("")}
+              ${dayTasks.length > 3 ? `<span class="calendar-more">+${dayTasks.length - 3} lainnya</span>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function formatShortDate(date) {
+      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(date);
+    }
+
+    function formatDuration(seconds) {
+      const totalMinutes = Math.round(seconds / 60);
+      if (totalMinutes < 60) return `${totalMinutes}m`;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return minutes ? `${hours}j ${minutes}m` : `${hours}j`;
+    }
+
+    function renderDashboard() {
+      const weekStart = startOfWeek();
+      const weekEnd = addDays(weekStart, 6);
+      const weekStartKey = localDateKey(weekStart);
+      const weekEndKey = localDateKey(weekEnd);
+      const todayKey = localDateKey();
+      const activeTasks = state.tasks.filter(task => !task.archivedAt);
+      const completedThisWeek = state.tasks.filter(task => task.completedAt && localDateKey(new Date(task.completedAt)) >= weekStartKey && localDateKey(new Date(task.completedAt)) <= weekEndKey);
+      const focusSeconds = state.tasks.reduce((sum, task) => {
+        return sum + Object.entries(task.focusLog || {}).reduce((daySum, [key, seconds]) => {
+          return daySum + (key >= weekStartKey && key <= weekEndKey ? Number(seconds) || 0 : 0);
+        }, 0);
+      }, 0);
+      const overdue = activeTasks.filter(task => !task.done && task.deadline && task.deadline < todayKey).length;
+      const weekScheduled = activeTasks.filter(task => task.deadline >= weekStartKey && task.deadline <= weekEndKey);
+      const weekDone = weekScheduled.filter(task => task.done).length;
+      const rate = weekScheduled.length ? Math.round((weekDone / weekScheduled.length) * 100) : 0;
+
+      els.dashboardPeriod.textContent = `${formatShortDate(weekStart)} - ${formatShortDate(weekEnd)}`;
+      els.metricCompleted.textContent = completedThisWeek.length;
+      els.metricFocus.textContent = formatDuration(focusSeconds);
+      els.metricOverdue.textContent = overdue;
+      els.metricRate.textContent = `${rate}%`;
+
+      const dayCounts = Array.from({ length: 7 }, (_, index) => {
+        const date = addDays(weekStart, index);
+        const key = localDateKey(date);
+        return {
+          date,
+          count: completedThisWeek.filter(task => localDateKey(new Date(task.completedAt)) === key).length
+        };
+      });
+      const maxCount = Math.max(1, ...dayCounts.map(day => day.count));
+      els.weeklyChart.innerHTML = dayCounts.map(day => `
+        <div class="chart-day" title="${day.count} task selesai">
+          <div class="chart-track"><div class="chart-bar" style="height:${Math.max(day.count ? 10 : 3, Math.round((day.count / maxCount) * 100))}%"></div></div>
+          <span>${new Intl.DateTimeFormat("id-ID", { weekday: "short" }).format(day.date)}</span>
+        </div>
+      `).join("");
+
+      const bestDay = [...dayCounts].sort((a, b) => b.count - a.count)[0];
+      const recurringOpen = activeTasks.filter(task => task.recurrence !== "none" && !task.done).length;
+      const dueToday = activeTasks.filter(task => !task.done && task.deadline === todayKey).length;
+      const totalFocus = state.tasks.reduce((sum, task) => sum + (Number(task.focusSeconds) || 0), 0);
+      els.insightList.innerHTML = `
+        <div class="insight-row"><span>Hari terbaik</span><strong>${bestDay.count ? new Intl.DateTimeFormat("id-ID", { weekday: "long" }).format(bestDay.date) : "Belum ada"}</strong></div>
+        <div class="insight-row"><span>Jatuh tempo hari ini</span><strong>${dueToday} task</strong></div>
+        <div class="insight-row"><span>Rutinitas aktif</span><strong>${recurringOpen}</strong></div>
+        <div class="insight-row"><span>Total fokus</span><strong>${formatDuration(totalFocus)}</strong></div>
+      `;
+    }
+
+    function changeCalendarMonth(offset) {
+      state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + offset, 1);
+      renderCalendar();
+    }
+
+    function moveTaskToDate(id, date) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task || task.archivedAt) return;
+      task.deadline = date;
+      saveTasks();
+      render();
+    }
+
     function deadlineBadge(task) {
       if (!task.deadline) return "";
       const label = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" })
@@ -2011,9 +2973,10 @@
     function toggleTask(id) {
       const task = state.tasks.find(item => item.id === id);
       if (!task || task.archivedAt) return;
-      task.done = !task.done;
+      const nextDone = !task.done;
+      setTaskCompletion(task, nextDone);
       if (task.subtasks.length) {
-        task.subtasks.forEach(subtask => subtask.done = task.done);
+        task.subtasks.forEach(subtask => subtask.done = nextDone);
       }
       if (task.done && state.activeId === id) stopTimer();
       saveTasks();
@@ -2027,6 +2990,7 @@
       els.editTitle.value = task.title;
       els.editMinutes.value = task.minutes;
       els.editPriority.value = task.priority;
+      els.editRecurrence.value = task.recurrence;
       els.editStartTime.value = task.startTime;
       els.editDeadline.value = task.deadline;
       els.editNotes.value = task.notes;
@@ -2047,6 +3011,8 @@
       task.title = title;
       task.minutes = Number(els.editMinutes.value);
       task.priority = els.editPriority.value;
+      task.recurrence = els.editRecurrence.value;
+      task.seriesId = task.recurrence === "none" ? "" : (task.seriesId || task.id);
       task.startTime = els.editStartTime.value;
       task.deadline = els.editDeadline.value;
       task.notes = els.editNotes.value.trim();
@@ -2091,7 +3057,7 @@
       if (!task || !cleanTitle) return;
       task.subtasks.push({ id: crypto.randomUUID(), title: cleanTitle, done: false });
       task.subtasksCollapsed = false;
-      task.done = false;
+      setTaskCompletion(task, false);
       saveTasks();
       render();
     }
@@ -2101,7 +3067,7 @@
       const subtask = task?.subtasks.find(item => item.id === subtaskId);
       if (!task || !subtask) return;
       subtask.done = !subtask.done;
-      task.done = task.subtasks.length > 0 && task.subtasks.every(item => item.done);
+      setTaskCompletion(task, task.subtasks.length > 0 && task.subtasks.every(item => item.done));
       if (task.done && state.activeId === taskId) stopTimer();
       saveTasks();
       render();
@@ -2112,7 +3078,7 @@
       if (!task) return;
       task.subtasks = task.subtasks.filter(item => item.id !== subtaskId);
       if (task.subtasks.length) {
-        task.done = task.subtasks.every(item => item.done);
+        setTaskCompletion(task, task.subtasks.every(item => item.done));
       }
       if (task.done && state.activeId === taskId) stopTimer();
       saveTasks();
@@ -2161,6 +3127,19 @@
         state.running = true;
         state.tick = setInterval(() => {
           state.secondsLeft = Math.max(0, state.secondsLeft - 1);
+          const task = currentTask();
+          if (task) {
+            task.focusSeconds = (Number(task.focusSeconds) || 0) + 1;
+            const today = localDateKey();
+            task.focusLog[today] = (Number(task.focusLog[today]) || 0) + 1;
+            state.focusDirty = true;
+            state.focusSaveCounter += 1;
+            if (state.focusSaveCounter >= 60) {
+              state.focusSaveCounter = 0;
+              saveTasks();
+              state.focusDirty = false;
+            }
+          }
           if (state.secondsLeft === 0) {
             stopTimer();
             notifyDone();
@@ -2175,6 +3154,11 @@
       state.running = false;
       clearInterval(state.tick);
       state.tick = null;
+      if (state.focusDirty) {
+        state.focusDirty = false;
+        state.focusSaveCounter = 0;
+        saveTasks();
+      }
     }
 
     function resetTimer() {
@@ -2189,7 +3173,7 @@
     function finishActiveTask() {
       const task = currentTask();
       if (!task) return;
-      task.done = true;
+      setTaskCompletion(task, true);
       task.subtasks.forEach(subtask => subtask.done = true);
       stopTimer();
       saveTasks();
@@ -2204,6 +3188,94 @@
       }
       document.title = "Selesai - Task Time Boxing";
       setTimeout(() => document.title = "Task Time Boxing", 3000);
+    }
+
+    function updateReminderButton() {
+      const supported = "Notification" in window;
+      const active = supported && Notification.permission === "granted" && state.remindersEnabled;
+      els.reminderToggle.disabled = !supported;
+      els.reminderToggle.setAttribute("aria-pressed", String(active));
+      els.reminderToggle.title = !supported
+        ? "Notifikasi tidak didukung browser"
+        : active ? "Nonaktifkan pengingat" : "Aktifkan pengingat";
+      els.reminderToggle.setAttribute("aria-label", els.reminderToggle.title);
+    }
+
+    async function toggleReminders() {
+      if (!("Notification" in window)) return;
+      if (state.remindersEnabled && Notification.permission === "granted") {
+        state.remindersEnabled = false;
+      } else {
+        const permission = Notification.permission === "default"
+          ? await Notification.requestPermission()
+          : Notification.permission;
+        state.remindersEnabled = permission === "granted";
+      }
+      localStorage.setItem(reminderEnabledKey, String(state.remindersEnabled));
+      updateReminderButton();
+      if (state.remindersEnabled) checkReminders();
+    }
+
+    function reminderHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(reminderHistoryKey) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    async function showTaskNotification(title, body, tag) {
+      try {
+        const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.ready : null;
+        if (registration) {
+          await registration.showNotification(title, { body, tag, icon: "/icons/icon-192.png" });
+        } else {
+          new Notification(title, { body, tag });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function checkReminders() {
+      if (!("Notification" in window) || Notification.permission !== "granted" || !state.remindersEnabled) return;
+      const now = new Date();
+      const today = localDateKey(now);
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const history = reminderHistory();
+      let changed = false;
+
+      state.tasks.filter(task => !task.done && !task.archivedAt && task.deadline).forEach(task => {
+        let kind = "";
+        let title = "";
+        let body = task.title;
+        if (task.deadline < today) {
+          kind = `overdue:${today}`;
+          title = "Task melewati deadline";
+        } else if (task.deadline === today && task.startTime) {
+          const [hours, minutes] = task.startTime.split(":").map(Number);
+          const difference = hours * 60 + minutes - nowMinutes;
+          if (difference >= 0 && difference <= 15) {
+            kind = `start:${task.deadline}:${task.startTime}`;
+            title = difference === 0 ? "Waktu mulai task" : `Task mulai ${difference} menit lagi`;
+          }
+        } else if (task.deadline === today) {
+          kind = `deadline:${today}`;
+          title = "Deadline task hari ini";
+        }
+
+        const key = kind ? `${task.id}:${kind}` : "";
+        if (key && !history[key]) {
+          history[key] = Date.now();
+          changed = true;
+          showTaskNotification(title, body, key);
+        }
+      });
+
+      if (changed) {
+        const trimmed = Object.fromEntries(Object.entries(history).sort((a, b) => b[1] - a[1]).slice(0, 200));
+        localStorage.setItem(reminderHistoryKey, JSON.stringify(trimmed));
+      }
     }
 
     function currentTask() {
@@ -2243,14 +3315,8 @@
         if (!Array.isArray(payload.tasks) || !Array.isArray(payload.ideas)) {
           throw new Error("Format backup tidak valid.");
         }
-      state.tasks = payload.tasks.map(task => ({
-          ...task,
-          startTime: task.startTime || "",
-          deadline: task.deadline || "",
-          archivedAt: Number(task.archivedAt) || null,
-          subtasksCollapsed: task.subtasksCollapsed !== false,
-          subtasks: Array.isArray(task.subtasks) ? task.subtasks : []
-        }));
+        state.tasks = payload.tasks.map(normalizeTask);
+        ensureRecurringTasks();
         state.ideas = payload.ideas.map(idea => ({
           ...idea,
           status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
@@ -2286,6 +3352,21 @@
       localStorage.removeItem(accessKeyStoreKey);
       els.syncStatus.textContent = "Kunci akses diperlukan";
       showAccessDialog("Masukkan kunci akses yang baru.");
+    });
+
+    els.themeToggle.addEventListener("click", toggleTheme);
+    els.reminderToggle.addEventListener("click", toggleReminders);
+    els.calendarPrev.addEventListener("click", () => changeCalendarMonth(-1));
+    els.calendarNext.addEventListener("click", () => changeCalendarMonth(1));
+    els.calendarToday.addEventListener("click", () => {
+      const now = new Date();
+      state.calendarDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      renderCalendar();
+    });
+
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+    systemTheme.addEventListener?.("change", event => {
+      if (!localStorage.getItem(themeStoreKey)) applyTheme(event.matches ? "dark" : "light", false);
     });
 
     els.accessDialog.addEventListener("cancel", event => event.preventDefault());
@@ -2348,6 +3429,50 @@
       const ideaEl = event.target.closest(".idea-item");
       if (!input || !ideaEl) return;
       setIdeaTarget(ideaEl.dataset.ideaId, input.value);
+    });
+
+    els.calendarGrid.addEventListener("click", event => {
+      const taskButton = event.target.closest(".calendar-task");
+      if (taskButton) {
+        openEditTask(taskButton.dataset.taskId);
+        return;
+      }
+      const dateButton = event.target.closest('[data-action="new-on-date"]');
+      const day = event.target.closest(".calendar-day");
+      if (!dateButton || !day) return;
+      els.deadline.value = day.dataset.date;
+      setView("tasks");
+      requestAnimationFrame(() => els.title.focus());
+    });
+
+    els.calendarGrid.addEventListener("dragstart", event => {
+      const taskButton = event.target.closest(".calendar-task");
+      if (!taskButton) return;
+      state.calendarDraggedId = taskButton.dataset.taskId;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", state.calendarDraggedId);
+    });
+
+    els.calendarGrid.addEventListener("dragover", event => {
+      const day = event.target.closest(".calendar-day");
+      if (!day || !state.calendarDraggedId) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      els.calendarGrid.querySelectorAll(".drag-target").forEach(item => item.classList.remove("drag-target"));
+      day.classList.add("drag-target");
+    });
+
+    els.calendarGrid.addEventListener("drop", event => {
+      const day = event.target.closest(".calendar-day");
+      if (!day || !state.calendarDraggedId) return;
+      event.preventDefault();
+      moveTaskToDate(state.calendarDraggedId, day.dataset.date);
+      state.calendarDraggedId = null;
+    });
+
+    els.calendarGrid.addEventListener("dragend", () => {
+      state.calendarDraggedId = null;
+      els.calendarGrid.querySelectorAll(".drag-target").forEach(item => item.classList.remove("drag-target"));
     });
 
     els.list.addEventListener("click", event => {
@@ -2447,6 +3572,8 @@
       });
     }
 
+    applyTheme(document.documentElement.dataset.theme, false);
+    updateReminderButton();
     initDate();
     loadTasks();
     loadIdeas();
@@ -2455,6 +3582,8 @@
     const firstActiveTask = state.tasks.find(task => !task.done && !task.archivedAt);
     if (firstActiveTask) chooseTask(firstActiveTask.id);
     render();
+    checkReminders();
+    state.reminderTimer = setInterval(checkReminders, 60000);
     if (state.accessKey && !navigator.onLine) {
       unlockInterface();
       els.syncStatus.textContent = "Offline · data lokal aman";
