@@ -11,6 +11,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script src="/firebase-config.js"></script>
   <script>
     (() => {
       try {
@@ -296,6 +297,36 @@
       top: 16px;
     }
 
+    .mobile-composer-header,
+    .composer-backdrop,
+    .task-fab {
+      display: none;
+    }
+
+    .mobile-composer-header {
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mobile-composer-header h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .mobile-composer-close {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1;
+    }
+
     .section-title {
       margin: 0 0 11px;
       font-size: 16px;
@@ -522,7 +553,8 @@
     }
 
     .calendar-only,
-    .dashboard-only {
+    .dashboard-only,
+    .admin-only {
       display: none;
     }
 
@@ -537,13 +569,24 @@
       display: none;
     }
 
+    body.view-admin .composer,
+    body.view-admin .task-only,
+    body.view-admin .idea-panel,
+    body.view-admin .archive-only,
+    body.view-admin .calendar-only,
+    body.view-admin .dashboard-only {
+      display: none;
+    }
+
     body.view-calendar .calendar-only,
-    body.view-dashboard .dashboard-only {
+    body.view-dashboard .dashboard-only,
+    body.view-admin .admin-only {
       display: block;
     }
 
     body.view-calendar main,
-    body.view-dashboard main {
+    body.view-dashboard main,
+    body.view-admin main {
       grid-template-columns: minmax(0, 900px);
       justify-content: center;
     }
@@ -1048,6 +1091,97 @@
       text-align: right;
     }
 
+    .admin-create {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.8fr) 120px auto;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .admin-create input,
+    .admin-create select {
+      min-width: 0;
+    }
+
+    .admin-create .primary {
+      width: auto;
+      padding: 0 14px;
+    }
+
+    .admin-feedback {
+      min-height: 18px;
+      margin: 0;
+      padding: 0 12px 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .admin-user-list {
+      display: grid;
+    }
+
+    .admin-user {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto 110px 120px auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .admin-user:last-child {
+      border-bottom: 0;
+    }
+
+    .admin-identity {
+      min-width: 0;
+    }
+
+    .admin-identity strong,
+    .admin-identity span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .admin-identity span {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .admin-state {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .admin-state.linked {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .admin-open {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    :root[data-theme="dark"] .admin-state {
+      background: #34393e;
+    }
+
+    :root[data-theme="dark"] .admin-state.linked {
+      background: #173d2c;
+      color: #86efac;
+    }
+
     .task {
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -1423,6 +1557,48 @@
       font-weight: 700;
     }
 
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .auth-secondary {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .auth-switch {
+      display: block;
+      margin: 12px auto 0;
+      background: transparent;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .auth-switch[hidden] {
+      display: none;
+    }
+
     .secondary {
       min-height: 38px;
       border: 1px solid var(--line);
@@ -1644,6 +1820,79 @@
         position: static;
       }
 
+      .composer > .section-title,
+      .composer > #taskForm {
+        display: none;
+      }
+
+      .composer .timer {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+      }
+
+      body.composer-open {
+        overflow: hidden;
+      }
+
+      body.composer-open .composer > #taskForm {
+        display: block;
+        position: fixed;
+        z-index: 71;
+        top: 50%;
+        left: 50%;
+        width: min(calc(100% - 32px), 480px);
+        max-height: calc(100dvh - 32px);
+        padding: 16px;
+        overflow-y: auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+        transform: translate(-50%, -50%);
+      }
+
+      body.composer-open .mobile-composer-header {
+        display: flex;
+      }
+
+      body.composer-open .composer-backdrop {
+        display: block;
+        position: fixed;
+        z-index: 70;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: rgba(15, 23, 42, 0.58);
+      }
+
+      body.view-tasks:not(.locked) .task-fab {
+        display: grid;
+        position: fixed;
+        z-index: 60;
+        right: 22px;
+        bottom: calc(22px + env(safe-area-inset-bottom));
+        width: 54px;
+        height: 54px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #ffffff;
+        box-shadow: 0 12px 30px rgba(15, 118, 110, 0.34);
+        font-size: 30px;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      body.composer-open .task-fab {
+        display: none;
+      }
+
       .toolbar,
       .stats {
         grid-template-columns: 1fr 1fr;
@@ -1655,6 +1904,20 @@
 
       .dashboard-body {
         grid-template-columns: 1fr;
+      }
+
+      .admin-create {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .admin-user {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .admin-user select,
+      .admin-user .compact-button,
+      .admin-user .admin-open {
+        width: 100%;
       }
 
       .segmented {
@@ -1670,6 +1933,19 @@
 
       .today {
         min-width: 0;
+      }
+
+      body.composer-open .composer > #taskForm {
+        top: auto;
+        bottom: 0;
+        width: 100%;
+        max-height: 88dvh;
+        padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: var(--radius) var(--radius) 0 0;
+        transform: translateX(-50%);
       }
 
       .form-row,
@@ -1739,6 +2015,18 @@
         padding: 0 8px 8px;
       }
 
+      .admin-create {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-user {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .admin-identity {
+        grid-column: 1 / -1;
+      }
+
       .actions {
         grid-column: 1 / -1;
         grid-auto-flow: column;
@@ -1772,6 +2060,10 @@
       </button>
       <button class="view-tab" type="button" data-view="calendar">Kalender</button>
       <button class="view-tab" type="button" data-view="dashboard">Dashboard</button>
+      <button class="view-tab" id="adminTab" type="button" data-view="admin" hidden>
+        Admin
+        <span class="nav-count" id="adminNavCount">0</span>
+      </button>
       <button class="view-tab" type="button" data-view="archive">
         Arsip
         <span class="nav-count" id="archiveNavCount">0</span>
@@ -1807,7 +2099,13 @@
             <path d="m19.07 4.93-1.41 1.41"></path>
           </svg>
         </button>
-        <button class="data-tool" id="accessKeyButton" type="button" title="Ganti kunci akses">#</button>
+        <button class="data-tool" id="accessKeyButton" type="button" title="Keluar dari akun" aria-label="Keluar dari akun">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 17l5-5-5-5"></path>
+            <path d="M15 12H3"></path>
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+          </svg>
+        </button>
         <button class="data-tool export-tool" id="exportData" type="button" title="Ekspor data" aria-label="Ekspor data">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3v12"></path>
@@ -1830,6 +2128,10 @@
       <aside class="panel composer task-only">
         <h2 class="section-title">Tambah task</h2>
         <form id="taskForm">
+          <div class="mobile-composer-header">
+            <h2>Tambah task</h2>
+            <button class="mobile-composer-close" id="closeTaskComposer" type="button" title="Tutup form" aria-label="Tutup form">×</button>
+          </div>
           <div class="field">
             <label for="title">Nama task</label>
             <input id="title" name="title" required maxlength="90" placeholder="Contoh: Review proposal klien">
@@ -1958,6 +2260,27 @@
           </div>
         </section>
 
+        <section class="workspace-panel admin-only" aria-label="Dashboard admin pengguna">
+          <div class="workspace-header">
+            <div>
+              <h2>Pengguna</h2>
+              <p>Tambahkan email sebelum pengguna mendaftar atau masuk.</p>
+            </div>
+            <button class="compact-button" id="refreshUsers" type="button" title="Muat ulang pengguna" aria-label="Muat ulang pengguna">↻</button>
+          </div>
+          <form class="admin-create" id="adminUserForm">
+            <input id="adminUserEmail" type="email" required placeholder="Email pengguna" aria-label="Email pengguna">
+            <input id="adminUserName" maxlength="80" required placeholder="Nama pengguna" aria-label="Nama pengguna">
+            <select id="adminUserRole" aria-label="Role pengguna">
+              <option value="user" selected>User</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="primary" type="submit">+ Tambah</button>
+          </form>
+          <p class="admin-feedback" id="adminFeedback" role="status"></p>
+          <div class="admin-user-list" id="adminUserList"></div>
+        </section>
+
         <div class="archive-header archive-only">
           <div>
             <h2>Arsip task selesai</h2>
@@ -1991,6 +2314,9 @@
       </section>
     </main>
   </div>
+
+  <button class="composer-backdrop" id="composerBackdrop" type="button" tabindex="-1" aria-label="Tutup form tambah task"></button>
+  <button class="task-fab" id="openTaskComposer" type="button" aria-label="Tambah task" aria-controls="taskForm" aria-expanded="false" title="Tambah task">+</button>
 
   <dialog id="editDialog">
     <form class="dialog-form" id="editForm">
@@ -2050,28 +2376,54 @@
   <dialog class="access-dialog" id="accessDialog">
     <form class="dialog-form" id="accessForm">
       <div class="dialog-header">
-        <h2>Buka Task Time Boxing</h2>
+        <h2 id="authTitle">Masuk ke Task Time Boxing</h2>
       </div>
-      <p class="access-copy">Masukkan kunci akses untuk menghubungkan aplikasi dengan data Google Sheets.</p>
+      <p class="access-copy" id="authCopy">Gunakan akun Anda agar task tersimpan pribadi dan tersedia di semua perangkat.</p>
       <div class="field">
-        <label for="accessKey">Kunci akses</label>
-        <input id="accessKey" type="password" autocomplete="current-password" required autofocus>
+        <label for="authEmail">Email</label>
+        <input id="authEmail" type="email" autocomplete="email" required autofocus>
+      </div>
+      <div class="field">
+        <label for="accessKey">Kata sandi</label>
+        <input id="accessKey" type="password" autocomplete="current-password" minlength="6" required>
       </div>
       <p class="access-error" id="accessError" role="alert"></p>
-      <button class="primary" id="unlockApp" type="submit">Buka aplikasi</button>
+      <button class="primary" id="unlockApp" type="submit">Masuk</button>
+      <div class="auth-divider"><span>atau</span></div>
+      <button class="auth-secondary" id="googleSignIn" type="button">Masuk dengan Google</button>
+      <button class="auth-switch" id="toggleAuthMode" type="button">Belum punya akun? Daftar</button>
+      <button class="auth-switch" id="resetPassword" type="button">Lupa kata sandi</button>
     </form>
   </dialog>
 
-  <script>
-    const storeKey = "timeBoxTasks:v1";
-    const ideaStoreKey = "timeBoxIdeas:v1";
-    const dirtyStoreKey = "timeBoxSyncDirty:v1";
-    const accessKeyStoreKey = "timeBoxAccessKey:v1";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import {
+      createUserWithEmailAndPassword,
+      getAuth,
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      sendEmailVerification,
+      sendPasswordResetEmail,
+      setPersistence,
+      browserLocalPersistence,
+      signInWithEmailAndPassword,
+      signInWithPopup,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    const storeKeyBase = "timeBoxTasks:v2";
+    const ideaStoreKeyBase = "timeBoxIdeas:v2";
+    const dirtyStoreKeyBase = "timeBoxSyncDirty:v2";
     const themeStoreKey = "timeBoxTheme:v1";
     const reminderHistoryKey = "timeBoxReminderHistory:v1";
     const reminderEnabledKey = "timeBoxRemindersEnabled:v1";
     const remoteMetaId = "__timeboxing_meta_v2__";
-    const remoteBackendAvailable = location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+    const firebaseConfig = window.FIREBASE_CONFIG || {};
+    const requiredFirebaseKeys = ["apiKey", "authDomain", "projectId", "appId"];
+    const firebaseConfigured = requiredFirebaseKeys.every(key => firebaseConfig[key] && !String(firebaseConfig[key]).startsWith("GANTI_"));
+    const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
+    const auth = firebaseApp ? getAuth(firebaseApp) : null;
+    const remoteBackendAvailable = firebaseConfigured;
     const priorityRank = { high: 0, medium: 1, low: 2 };
     const priorityLabel = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
     const recurrenceLabel = { none: "", daily: "Harian", weekly: "Mingguan", monthly: "Bulanan" };
@@ -2097,18 +2449,27 @@
       remindersEnabled: localStorage.getItem(reminderEnabledKey) === "true",
       focusDirty: false,
       focusSaveCounter: 0,
-      accessKey: localStorage.getItem(accessKeyStoreKey) || "",
+      user: null,
+      profile: null,
+      adminUsers: [],
+      authNotice: "",
+      authMode: "signin",
       localRevision: 0
     };
 
     const els = {
       form: document.querySelector("#taskForm"),
+      openTaskComposer: document.querySelector("#openTaskComposer"),
+      closeTaskComposer: document.querySelector("#closeTaskComposer"),
+      composerBackdrop: document.querySelector("#composerBackdrop"),
       ideaForm: document.querySelector("#ideaForm"),
       ideaTitle: document.querySelector("#ideaTitle"),
       ideaList: document.querySelector("#ideaList"),
       ideaCount: document.querySelector("#ideaCount"),
       ideaNavCount: document.querySelector("#ideaNavCount"),
       archiveNavCount: document.querySelector("#archiveNavCount"),
+      adminTab: document.querySelector("#adminTab"),
+      adminNavCount: document.querySelector("#adminNavCount"),
       archiveSummary: document.querySelector("#archiveSummary"),
       installApp: document.querySelector("#installApp"),
       reminderToggle: document.querySelector("#reminderToggle"),
@@ -2119,9 +2480,15 @@
       accessKeyButton: document.querySelector("#accessKeyButton"),
       accessDialog: document.querySelector("#accessDialog"),
       accessForm: document.querySelector("#accessForm"),
+      authEmail: document.querySelector("#authEmail"),
+      authTitle: document.querySelector("#authTitle"),
+      authCopy: document.querySelector("#authCopy"),
       accessKey: document.querySelector("#accessKey"),
       accessError: document.querySelector("#accessError"),
       unlockApp: document.querySelector("#unlockApp"),
+      googleSignIn: document.querySelector("#googleSignIn"),
+      toggleAuthMode: document.querySelector("#toggleAuthMode"),
+      resetPassword: document.querySelector("#resetPassword"),
       exportData: document.querySelector("#exportData"),
       importData: document.querySelector("#importData"),
       importFile: document.querySelector("#importFile"),
@@ -2161,6 +2528,13 @@
       metricRate: document.querySelector("#metricRate"),
       weeklyChart: document.querySelector("#weeklyChart"),
       insightList: document.querySelector("#insightList"),
+      adminUserForm: document.querySelector("#adminUserForm"),
+      adminUserEmail: document.querySelector("#adminUserEmail"),
+      adminUserName: document.querySelector("#adminUserName"),
+      adminUserRole: document.querySelector("#adminUserRole"),
+      adminFeedback: document.querySelector("#adminFeedback"),
+      adminUserList: document.querySelector("#adminUserList"),
+      refreshUsers: document.querySelector("#refreshUsers"),
       editDialog: document.querySelector("#editDialog"),
       editForm: document.querySelector("#editForm"),
       editId: document.querySelector("#editId"),
@@ -2241,54 +2615,34 @@
       }));
     }
 
+    function userStoreKey(base) {
+      return `${base}:${state.user?.uid || "signed-out"}`;
+    }
+
+    function dirtyStoreKey() {
+      return userStoreKey(dirtyStoreKeyBase);
+    }
+
     function loadTasks() {
-      const saved = localStorage.getItem(storeKey);
-      state.tasks = saved ? JSON.parse(saved) : [
-        {
-          id: crypto.randomUUID(),
-          title: "Rencanakan 3 prioritas utama",
-          minutes: 25,
-          priority: "high",
-          notes: "Tulis hasil yang ingin selesai sebelum mulai bekerja.",
-          startTime: "09:00",
-          deadline: "",
-          done: false,
-          archivedAt: null,
-          subtasks: [],
-          subtasksCollapsed: true,
-          createdAt: Date.now()
-        },
-        {
-          id: crypto.randomUUID(),
-          title: "Rapikan inbox dan pesan penting",
-          minutes: 15,
-          priority: "medium",
-          notes: "",
-          startTime: "10:00",
-          deadline: "",
-          done: false,
-          archivedAt: null,
-          subtasks: [],
-          subtasksCollapsed: true,
-          createdAt: Date.now() - 1
-        }
-      ];
+      const saved = localStorage.getItem(userStoreKey(storeKeyBase));
+      state.tasks = saved ? JSON.parse(saved) : [];
       state.tasks = state.tasks.map(normalizeTask);
       ensureRecurringTasks();
       saveTasks();
     }
 
     function saveTasks() {
-      localStorage.setItem(storeKey, JSON.stringify(state.tasks));
+      if (!state.user) return;
+      localStorage.setItem(userStoreKey(storeKeyBase), JSON.stringify(state.tasks));
       if (state.syncEnabled) {
         state.localRevision += 1;
-        localStorage.setItem(dirtyStoreKey, "true");
+        localStorage.setItem(dirtyStoreKey(), "true");
       }
       queueServerSync();
     }
 
     function loadIdeas() {
-      const saved = localStorage.getItem(ideaStoreKey);
+      const saved = localStorage.getItem(userStoreKey(ideaStoreKeyBase));
       state.ideas = saved ? JSON.parse(saved) : [];
       state.ideas = state.ideas.map(idea => ({
         ...idea,
@@ -2299,24 +2653,27 @@
     }
 
     function saveIdeas() {
-      localStorage.setItem(ideaStoreKey, JSON.stringify(state.ideas));
+      if (!state.user) return;
+      localStorage.setItem(userStoreKey(ideaStoreKeyBase), JSON.stringify(state.ideas));
       if (state.syncEnabled) {
         state.localRevision += 1;
-        localStorage.setItem(dirtyStoreKey, "true");
+        localStorage.setItem(dirtyStoreKey(), "true");
       }
       queueServerSync();
     }
 
     async function remoteCall(action, payload) {
-      const headers = {
-        "Accept": "application/json",
-        "Authorization": `Bearer ${state.accessKey}`
-      };
-      if (action !== "getAppData") headers["Content-Type"] = "application/json";
+      if (!state.user) throw new Error("Pengguna belum masuk.");
+      const token = await state.user.getIdToken();
+      const method = action === "getAppData" ? "GET" : action === "saveAppData" ? "PUT" : "POST";
       const response = await fetch("/api/data", {
-        method: action === "getAppData" ? "GET" : "PUT",
-        headers,
-        body: action === "getAppData" ? undefined : JSON.stringify(payload)
+        method,
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+          ...(method === "GET" ? {} : { "Content-Type": "application/json" })
+        },
+        body: method === "GET" ? undefined : JSON.stringify(action === "saveAppData" ? payload : { action, ...payload })
       });
       const result = await response.json().catch(() => ({ error: "Respons backend tidak valid." }));
       if (!response.ok) {
@@ -2331,31 +2688,93 @@
       document.body.classList.add("locked");
       els.accessError.textContent = message;
       els.accessKey.value = "";
+      renderAuthMode();
       if (!els.accessDialog.open) els.accessDialog.showModal();
-      setTimeout(() => els.accessKey.focus(), 0);
+      setTimeout(() => els.authEmail.focus(), 0);
     }
 
     function unlockInterface() {
-      localStorage.setItem(accessKeyStoreKey, state.accessKey);
       document.body.classList.remove("locked");
       els.accessError.textContent = "";
       if (els.accessDialog.open) els.accessDialog.close();
     }
 
+    function renderAuthMode() {
+      const registering = state.authMode === "register";
+      els.authTitle.textContent = registering ? "Buat akun baru" : "Masuk ke Task Time Boxing";
+      els.authCopy.textContent = registering
+        ? "Setiap akun memiliki ruang task pribadi yang terpisah."
+        : "Gunakan akun Anda agar task tersedia aman di semua perangkat.";
+      els.unlockApp.textContent = registering ? "Buat akun" : "Masuk";
+      els.toggleAuthMode.textContent = registering ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar";
+      els.resetPassword.hidden = registering;
+      els.accessKey.autocomplete = registering ? "new-password" : "current-password";
+    }
+
+    function authErrorMessage(error) {
+      const messages = {
+        "auth/email-already-in-use": "Email tersebut sudah terdaftar.",
+        "auth/invalid-credential": "Email atau kata sandi tidak cocok.",
+        "auth/invalid-email": "Format email belum benar.",
+        "auth/popup-closed-by-user": "Jendela masuk Google ditutup.",
+        "auth/popup-blocked": "Popup Google diblokir browser.",
+        "auth/unauthorized-domain": "Domain Netlify belum ditambahkan ke Authorized domains Firebase.",
+        "auth/weak-password": "Kata sandi minimal 6 karakter.",
+        "auth/network-request-failed": "Koneksi internet bermasalah. Silakan coba lagi."
+      };
+      return messages[error?.code] || error?.message || "Autentikasi gagal. Silakan coba lagi.";
+    }
+
+    async function startUserSession(user) {
+      state.user = user;
+      state.syncEnabled = false;
+      state.localRevision = 0;
+      stopTimer();
+      state.activeId = null;
+      loadTasks();
+      loadIdeas();
+      state.syncEnabled = true;
+      els.accessKeyButton.title = `Keluar dari ${user.email || "akun"}`;
+      els.accessKeyButton.setAttribute("aria-label", els.accessKeyButton.title);
+      unlockInterface();
+      setView("tasks");
+      const firstActiveTask = state.tasks.find(task => !task.done && !task.archivedAt);
+      if (firstActiveTask) chooseTask(firstActiveTask.id);
+      render();
+      if (navigator.onLine) {
+        await syncFromServer();
+      } else {
+        els.syncStatus.textContent = "Offline · data akun tersimpan lokal";
+      }
+    }
+
+    function endUserSession() {
+      const authNotice = state.authNotice;
+      state.authNotice = "";
+      state.syncEnabled = false;
+      clearTimeout(state.syncTimer);
+      clearTimeout(state.syncRetryTimer);
+      stopTimer();
+      state.user = null;
+      state.profile = null;
+      state.adminUsers = [];
+      state.tasks = [];
+      state.ideas = [];
+      state.activeId = null;
+      state.timerTotal = 25 * 60;
+      state.secondsLeft = state.timerTotal;
+      els.syncStatus.textContent = "Masuk untuk menyinkronkan";
+      render();
+      showAccessDialog(authNotice || (firebaseConfigured ? "" : "Firebase belum dikonfigurasi. Ikuti panduan SETUP-HYBRID.md."));
+    }
+
     function handleSyncError(error) {
-      if (error.status === 401) {
-        state.accessKey = "";
-        localStorage.removeItem(accessKeyStoreKey);
-        els.syncStatus.textContent = "Kunci akses diperlukan";
-        showAccessDialog("Kunci akses salah. Silakan coba lagi.");
+      if (error.status === 403) {
+        state.authNotice = error.message || "Akun belum diaktifkan admin.";
+        if (auth && state.user) signOut(auth).catch(console.error);
         return;
       }
       els.syncStatus.textContent = "Sinkronisasi tertunda · data lokal aman";
-      if (document.body.classList.contains("locked") && state.accessKey) {
-        unlockInterface();
-      } else if (document.body.classList.contains("locked")) {
-        showAccessDialog("Belum dapat terhubung. Periksa konfigurasi Netlify lalu coba lagi.");
-      }
       scheduleSyncRetry();
     }
 
@@ -2367,15 +2786,16 @@
     }
 
     async function pushServerData() {
-      if (!remoteBackendAvailable) return;
+      if (!remoteBackendAvailable || !state.user) return;
       clearTimeout(state.syncTimer);
       els.syncStatus.textContent = "Menyinkronkan...";
       try {
-        await remoteCall("saveAppData", { tasks: tasksForRemote(), ideas: state.ideas });
+        const result = await remoteCall("saveAppData", { tasks: tasksForRemote(), ideas: state.ideas });
+        if (result.profile) state.profile = result.profile;
         clearTimeout(state.syncRetryTimer);
-        localStorage.removeItem(dirtyStoreKey);
-        els.syncStatus.textContent = "Tersinkron ke Google Sheets";
-        unlockInterface();
+        localStorage.removeItem(dirtyStoreKey());
+        els.syncStatus.textContent = "Tersinkron · spreadsheet pribadi";
+        renderAdmin();
         return true;
       } catch (error) {
         handleSyncError(error);
@@ -2391,18 +2811,20 @@
     }
 
     async function syncFromServer() {
-      if (!remoteBackendAvailable) {
+      if (!remoteBackendAvailable || !state.user) {
         els.syncStatus.textContent = "Tersimpan lokal";
         return;
       }
-      els.syncStatus.textContent = "Menghubungkan Google Sheets...";
+      els.syncStatus.textContent = "Menghubungkan spreadsheet pribadi...";
       const revisionAtStart = state.localRevision;
       try {
         const remote = await remoteCall("getAppData");
-        const hasPendingLocalChanges = localStorage.getItem(dirtyStoreKey) === "true" || state.localRevision !== revisionAtStart;
+        const hasPendingLocalChanges = localStorage.getItem(dirtyStoreKey()) === "true" || state.localRevision !== revisionAtStart;
         if (hasPendingLocalChanges) {
           return await pushServerData();
         }
+        remote.tasks = Array.isArray(remote.tasks) ? remote.tasks : [];
+        remote.ideas = Array.isArray(remote.ideas) ? remote.ideas : [];
         const hasRemoteData = remote.tasks.length > 0 || remote.ideas.length > 0;
         if (!hasRemoteData && (state.tasks.length > 0 || state.ideas.length > 0)) {
           return await pushServerData();
@@ -2415,17 +2837,17 @@
           status: ["inbox", "plan", "archived"].includes(idea.status) ? idea.status : "inbox",
           targetMonth: idea.targetMonth || ""
         }));
-        localStorage.setItem(storeKey, JSON.stringify(state.tasks));
-        localStorage.setItem(ideaStoreKey, JSON.stringify(state.ideas));
-        localStorage.removeItem(dirtyStoreKey);
+        localStorage.setItem(userStoreKey(storeKeyBase), JSON.stringify(state.tasks));
+        localStorage.setItem(userStoreKey(ideaStoreKeyBase), JSON.stringify(state.ideas));
+        localStorage.removeItem(dirtyStoreKey());
         clearTimeout(state.syncRetryTimer);
         stopTimer();
         state.activeId = null;
+        state.profile = remote.profile || null;
         render();
         const nextTask = state.tasks.find(task => !task.done && !task.archivedAt);
         if (nextTask) chooseTask(nextTask.id);
-        els.syncStatus.textContent = "Tersinkron ke Google Sheets";
-        unlockInterface();
+        els.syncStatus.textContent = "Tersinkron · spreadsheet pribadi";
         if (recurringCreated) saveTasks();
         return true;
       } catch (error) {
@@ -2545,6 +2967,23 @@
       els.recurrence.value = "none";
       render();
       chooseTask(task.id);
+      closeTaskComposer();
+    }
+
+    function isCompactLayout() {
+      return window.matchMedia("(max-width: 860px)").matches;
+    }
+
+    function openTaskComposer() {
+      if (!isCompactLayout() || state.view !== "tasks") return;
+      document.body.classList.add("composer-open");
+      els.openTaskComposer.setAttribute("aria-expanded", "true");
+      requestAnimationFrame(() => els.title.focus());
+    }
+
+    function closeTaskComposer() {
+      document.body.classList.remove("composer-open");
+      els.openTaskComposer.setAttribute("aria-expanded", "false");
     }
 
     function visibleTasks() {
@@ -2572,11 +3011,16 @@
     }
 
     function setView(view) {
-      state.view = ["tasks", "ideas", "calendar", "dashboard", "archive"].includes(view) ? view : "tasks";
+      const allowedViews = ["tasks", "ideas", "calendar", "dashboard", "archive", "admin"];
+      state.view = allowedViews.includes(view) ? view : "tasks";
+      if (state.view === "admin" && state.profile?.role !== "admin") state.view = "tasks";
+      closeTaskComposer();
+      document.body.classList.toggle("view-tasks", state.view === "tasks");
       document.body.classList.toggle("view-ideas", state.view === "ideas");
       document.body.classList.toggle("view-archive", state.view === "archive");
       document.body.classList.toggle("view-calendar", state.view === "calendar");
       document.body.classList.toggle("view-dashboard", state.view === "dashboard");
+      document.body.classList.toggle("view-admin", state.view === "admin");
       els.viewTabs.forEach(tab => {
         const active = tab.dataset.view === state.view;
         tab.classList.toggle("active", active);
@@ -2585,6 +3029,9 @@
       if (state.view === "ideas") {
         renderIdeas();
         requestAnimationFrame(() => els.ideaTitle.focus());
+      } else if (state.view === "admin") {
+        renderAdmin();
+        loadAdminUsers();
       } else {
         render();
       }
@@ -2643,6 +3090,7 @@
       renderTimer();
       renderCalendar();
       renderDashboard();
+      renderAdmin();
       document.body.classList.toggle("manual-sort", els.sortBy.value === "manual" && state.view === "tasks");
       const tasks = visibleTasks();
 
@@ -2900,6 +3348,102 @@
         <div class="insight-row"><span>Rutinitas aktif</span><strong>${recurringOpen}</strong></div>
         <div class="insight-row"><span>Total fokus</span><strong>${formatDuration(totalFocus)}</strong></div>
       `;
+    }
+
+    function renderAdmin() {
+      const isAdmin = state.profile?.role === "admin";
+      els.adminTab.hidden = !isAdmin;
+      els.adminNavCount.textContent = isAdmin ? state.adminUsers.length : 0;
+      if (!isAdmin) {
+        els.adminUserList.innerHTML = "";
+        return;
+      }
+      if (!state.adminUsers.length) {
+        els.adminUserList.innerHTML = '<div class="idea-empty">Belum ada data pengguna.</div>';
+        return;
+      }
+
+      els.adminUserList.innerHTML = state.adminUsers.map(user => `
+        <div class="admin-user" data-user-id="${escapeHtml(String(user.id))}">
+          <div class="admin-identity">
+            <strong>${escapeHtml(String(user.name || "Pengguna"))}</strong>
+            <span>${escapeHtml(String(user.email || ""))}${user.lastSyncAt ? ` · Sync ${formatAdminDate(user.lastSyncAt)}` : ""}</span>
+          </div>
+          <span class="admin-state ${user.linked ? "linked" : ""}">${user.linked ? "UID tertaut" : "Menunggu login"}</span>
+          <select data-admin-field="role" aria-label="Role ${escapeHtml(String(user.email || "pengguna"))}">
+            <option value="user" ${user.role === "user" ? "selected" : ""}>User</option>
+            <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
+          </select>
+          <select data-admin-field="status" aria-label="Status ${escapeHtml(String(user.email || "pengguna"))}">
+            <option value="active" ${user.status === "active" ? "selected" : ""}>Aktif</option>
+            <option value="disabled" ${user.status === "disabled" ? "selected" : ""}>Nonaktif</option>
+          </select>
+          <div>
+            <button class="compact-button" type="button" data-action="save-user" title="Simpan pengguna" aria-label="Simpan pengguna">✓</button>
+            ${user.databaseUrl ? `<a class="admin-open" href="${escapeHtml(String(user.databaseUrl))}" target="_blank" rel="noopener">Sheet</a>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function formatAdminDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "-";
+      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
+    }
+
+    async function loadAdminUsers() {
+      if (state.profile?.role !== "admin") return;
+      els.adminFeedback.textContent = "Memuat pengguna...";
+      try {
+        const result = await remoteCall("listUsers", {});
+        state.adminUsers = Array.isArray(result.users) ? result.users : [];
+        els.adminFeedback.textContent = `${state.adminUsers.length} pengguna terdaftar.`;
+        renderAdmin();
+      } catch (error) {
+        els.adminFeedback.textContent = error.message || "Gagal memuat pengguna.";
+      }
+    }
+
+    async function createAdminUser(event) {
+      event.preventDefault();
+      els.adminFeedback.textContent = "Membuat database pengguna...";
+      const submitButton = els.adminUserForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      try {
+        await remoteCall("createUser", {
+          email: els.adminUserEmail.value.trim(),
+          name: els.adminUserName.value.trim(),
+          role: els.adminUserRole.value
+        });
+        els.adminUserForm.reset();
+        els.adminUserRole.value = "user";
+        await loadAdminUsers();
+        els.adminFeedback.textContent = "Pengguna dan spreadsheet berhasil dibuat.";
+      } catch (error) {
+        els.adminFeedback.textContent = error.message || "Gagal membuat pengguna.";
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+
+    async function updateAdminUser(row) {
+      const id = row.dataset.userId;
+      const button = row.querySelector('[data-action="save-user"]');
+      button.disabled = true;
+      els.adminFeedback.textContent = "Menyimpan perubahan...";
+      try {
+        await remoteCall("updateUser", {
+          id,
+          role: row.querySelector('[data-admin-field="role"]').value,
+          status: row.querySelector('[data-admin-field="status"]').value
+        });
+        await loadAdminUsers();
+        els.adminFeedback.textContent = "Perubahan pengguna tersimpan.";
+      } catch (error) {
+        els.adminFeedback.textContent = error.message || "Gagal mengubah pengguna.";
+        button.disabled = false;
+      }
     }
 
     function changeCalendarMonth(offset) {
@@ -3338,20 +3882,74 @@
 
     els.accessForm.addEventListener("submit", async event => {
       event.preventDefault();
-      const accessKey = els.accessKey.value.trim();
-      if (!accessKey) return;
-      state.accessKey = accessKey;
-      els.accessError.textContent = "Memeriksa kunci...";
+      if (!auth) {
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        return;
+      }
+      const email = els.authEmail.value.trim();
+      const password = els.accessKey.value;
+      if (!email || !password) return;
+      els.accessError.textContent = state.authMode === "register" ? "Membuat akun..." : "Memeriksa akun...";
       els.unlockApp.disabled = true;
-      await syncFromServer();
-      els.unlockApp.disabled = false;
+      try {
+        if (state.authMode === "register") {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch (error) {
+        els.accessError.textContent = authErrorMessage(error);
+      } finally {
+        els.unlockApp.disabled = false;
+      }
     });
 
-    els.accessKeyButton.addEventListener("click", () => {
-      state.accessKey = "";
-      localStorage.removeItem(accessKeyStoreKey);
-      els.syncStatus.textContent = "Kunci akses diperlukan";
-      showAccessDialog("Masukkan kunci akses yang baru.");
+    els.googleSignIn.addEventListener("click", async () => {
+      if (!auth) {
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        return;
+      }
+      els.accessError.textContent = "Membuka Google...";
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        els.accessError.textContent = authErrorMessage(error);
+      }
+    });
+
+    els.toggleAuthMode.addEventListener("click", () => {
+      state.authMode = state.authMode === "signin" ? "register" : "signin";
+      els.accessError.textContent = "";
+      renderAuthMode();
+    });
+
+    els.resetPassword.addEventListener("click", async () => {
+      const email = els.authEmail.value.trim();
+      if (!auth) {
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        return;
+      }
+      if (!email) {
+        els.accessError.textContent = "Masukkan email terlebih dahulu.";
+        els.authEmail.focus();
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        els.accessError.textContent = "Tautan pemulihan telah dikirim ke email Anda.";
+      } catch (error) {
+        els.accessError.textContent = authErrorMessage(error);
+      }
+    });
+
+    els.accessKeyButton.addEventListener("click", async () => {
+      if (!auth || !state.user) return;
+      if (localStorage.getItem(dirtyStoreKey()) === "true" && navigator.onLine) {
+        await pushServerData();
+      }
+      await signOut(auth);
     });
 
     els.themeToggle.addEventListener("click", toggleTheme);
@@ -3371,7 +3969,23 @@
 
     els.accessDialog.addEventListener("cancel", event => event.preventDefault());
     els.form.addEventListener("submit", addTask);
+    els.openTaskComposer.addEventListener("click", openTaskComposer);
+    els.closeTaskComposer.addEventListener("click", closeTaskComposer);
+    els.composerBackdrop.addEventListener("click", closeTaskComposer);
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && document.body.classList.contains("composer-open")) closeTaskComposer();
+    });
+    window.matchMedia("(max-width: 860px)").addEventListener?.("change", event => {
+      if (!event.matches) closeTaskComposer();
+    });
     els.ideaForm.addEventListener("submit", addIdea);
+    els.adminUserForm.addEventListener("submit", createAdminUser);
+    els.refreshUsers.addEventListener("click", loadAdminUsers);
+    els.adminUserList.addEventListener("click", event => {
+      const button = event.target.closest('[data-action="save-user"]');
+      const row = event.target.closest(".admin-user");
+      if (button && row) updateAdminUser(row);
+    });
     els.search.addEventListener("input", render);
     els.sortBy.addEventListener("change", render);
     els.startPause.addEventListener("click", () => {
@@ -3442,7 +4056,8 @@
       if (!dateButton || !day) return;
       els.deadline.value = day.dataset.date;
       setView("tasks");
-      requestAnimationFrame(() => els.title.focus());
+      if (isCompactLayout()) openTaskComposer();
+      else requestAnimationFrame(() => els.title.focus());
     });
 
     els.calendarGrid.addEventListener("dragstart", event => {
@@ -3559,7 +4174,7 @@
     });
 
     window.addEventListener("online", () => {
-      if (state.accessKey) syncFromServer();
+      if (state.user) syncFromServer();
     });
 
     window.addEventListener("offline", () => {
@@ -3575,21 +4190,39 @@
     applyTheme(document.documentElement.dataset.theme, false);
     updateReminderButton();
     initDate();
-    loadTasks();
-    loadIdeas();
-    state.syncEnabled = true;
     setView("tasks");
-    const firstActiveTask = state.tasks.find(task => !task.done && !task.archivedAt);
-    if (firstActiveTask) chooseTask(firstActiveTask.id);
     render();
     checkReminders();
     state.reminderTimer = setInterval(checkReminders, 60000);
-    if (state.accessKey && !navigator.onLine) {
-      unlockInterface();
-      els.syncStatus.textContent = "Offline · data lokal aman";
+
+    if (firebaseConfigured) {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        onAuthStateChanged(auth, user => {
+          if (user) {
+            const passwordAccount = user.providerData.some(provider => provider.providerId === "password");
+            if (passwordAccount && !user.emailVerified) {
+              sendEmailVerification(user)
+                .catch(() => {})
+                .finally(() => {
+                  state.authNotice = "Tautan verifikasi dikirim ke email Anda. Verifikasi lalu masuk kembali.";
+                  signOut(auth).catch(console.error);
+                });
+            } else {
+              startUserSession(user).catch(error => {
+                handleSyncError(error);
+                console.error(error);
+              });
+            }
+          } else {
+            endUserSession();
+          }
+        });
+      } catch (error) {
+        showAccessDialog(authErrorMessage(error));
+      }
     } else {
-      showAccessDialog(state.accessKey ? "Memeriksa kunci tersimpan..." : "");
-      if (state.accessKey) syncFromServer();
+      endUserSession();
     }
   </script>
 </body>

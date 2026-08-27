@@ -1,0 +1,11 @@
+{
+  "name": "task-timeboxing-gas-multiuser",
+  "private": true,
+  "version": "1.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "firebase-admin": "14.3.0"
+  }
+}

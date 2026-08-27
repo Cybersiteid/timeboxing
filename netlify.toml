@@ -3,6 +3,7 @@
 
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/data"
@@ -27,6 +28,11 @@
   [headers.values]
     Cache-Control = "no-cache"
     Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/firebase-config.js"
+  [headers.values]
+    Cache-Control = "no-cache"
 
 [[headers]]
   for = "/manifest.webmanifest"

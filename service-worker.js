@@ -1,4 +1,4 @@
-const CACHE_NAME = "task-timeboxing-v3";
+const CACHE_NAME = "task-timeboxing-gas-multiuser-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -24,7 +24,21 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) {
+  const trustedFirebaseModule = url.hostname === "www.gstatic.com" && url.pathname.startsWith("/firebasejs/12.17.1/");
+  if (request.method !== "GET" || (url.origin !== self.location.origin && !trustedFirebaseModule)) {
+    return;
+  }
+
+  if (url.origin === self.location.origin && url.pathname === "/firebase-config.js") {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
     return;
   }
 
