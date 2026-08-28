@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Task Time Boxing",
   "short_name": "Time Boxing",
-  "description": "Kelola task, rencana, kalender, dan sesi fokus pada spreadsheet pribadi.",
+  "description": "Kelola task, rencana, kalender, dan sesi fokus dalam akun pribadi.",
   "lang": "id-ID",
   "start_url": "/",
   "scope": "/",

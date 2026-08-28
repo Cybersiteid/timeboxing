@@ -1,4 +1,4 @@
-const CACHE_NAME = "task-timeboxing-gas-multiuser-v2";
+const CACHE_NAME = "task-timeboxing-firebase-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -24,7 +24,7 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  const trustedFirebaseModule = url.hostname === "www.gstatic.com" && url.pathname.startsWith("/firebasejs/12.17.1/");
+  const trustedFirebaseModule = url.hostname === "www.gstatic.com" && url.pathname.startsWith("/firebasejs/12.18.0/");
   if (request.method !== "GET" || (url.origin !== self.location.origin && !trustedFirebaseModule)) {
     return;
   }

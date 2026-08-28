@@ -553,8 +553,7 @@
     }
 
     .calendar-only,
-    .dashboard-only,
-    .admin-only {
+    .dashboard-only {
       display: none;
     }
 
@@ -569,24 +568,13 @@
       display: none;
     }
 
-    body.view-admin .composer,
-    body.view-admin .task-only,
-    body.view-admin .idea-panel,
-    body.view-admin .archive-only,
-    body.view-admin .calendar-only,
-    body.view-admin .dashboard-only {
-      display: none;
-    }
-
     body.view-calendar .calendar-only,
-    body.view-dashboard .dashboard-only,
-    body.view-admin .admin-only {
+    body.view-dashboard .dashboard-only {
       display: block;
     }
 
     body.view-calendar main,
-    body.view-dashboard main,
-    body.view-admin main {
+    body.view-dashboard main {
       grid-template-columns: minmax(0, 900px);
       justify-content: center;
     }
@@ -1089,97 +1077,6 @@
     .insight-row strong {
       color: var(--ink);
       text-align: right;
-    }
-
-    .admin-create {
-      display: grid;
-      grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.8fr) 120px auto;
-      gap: 8px;
-      padding: 12px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .admin-create input,
-    .admin-create select {
-      min-width: 0;
-    }
-
-    .admin-create .primary {
-      width: auto;
-      padding: 0 14px;
-    }
-
-    .admin-feedback {
-      min-height: 18px;
-      margin: 0;
-      padding: 0 12px 8px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .admin-user-list {
-      display: grid;
-    }
-
-    .admin-user {
-      display: grid;
-      grid-template-columns: minmax(180px, 1fr) auto 110px 120px auto;
-      gap: 8px;
-      align-items: center;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .admin-user:last-child {
-      border-bottom: 0;
-    }
-
-    .admin-identity {
-      min-width: 0;
-    }
-
-    .admin-identity strong,
-    .admin-identity span {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .admin-identity span {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .admin-state {
-      padding: 4px 7px;
-      border-radius: 999px;
-      background: #eef2f7;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    .admin-state.linked {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .admin-open {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 800;
-      text-decoration: none;
-    }
-
-    :root[data-theme="dark"] .admin-state {
-      background: #34393e;
-    }
-
-    :root[data-theme="dark"] .admin-state.linked {
-      background: #173d2c;
-      color: #86efac;
     }
 
     .task {
@@ -1906,20 +1803,6 @@
         grid-template-columns: 1fr;
       }
 
-      .admin-create {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .admin-user {
-        grid-template-columns: minmax(0, 1fr) auto;
-      }
-
-      .admin-user select,
-      .admin-user .compact-button,
-      .admin-user .admin-open {
-        width: 100%;
-      }
-
       .segmented {
         grid-column: 1 / -1;
       }
@@ -2015,18 +1898,6 @@
         padding: 0 8px 8px;
       }
 
-      .admin-create {
-        grid-template-columns: 1fr;
-      }
-
-      .admin-user {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .admin-identity {
-        grid-column: 1 / -1;
-      }
-
       .actions {
         grid-column: 1 / -1;
         grid-auto-flow: column;
@@ -2060,10 +1931,6 @@
       </button>
       <button class="view-tab" type="button" data-view="calendar">Kalender</button>
       <button class="view-tab" type="button" data-view="dashboard">Dashboard</button>
-      <button class="view-tab" id="adminTab" type="button" data-view="admin" hidden>
-        Admin
-        <span class="nav-count" id="adminNavCount">0</span>
-      </button>
       <button class="view-tab" type="button" data-view="archive">
         Arsip
         <span class="nav-count" id="archiveNavCount">0</span>
@@ -2260,27 +2127,6 @@
           </div>
         </section>
 
-        <section class="workspace-panel admin-only" aria-label="Dashboard admin pengguna">
-          <div class="workspace-header">
-            <div>
-              <h2>Pengguna</h2>
-              <p>Tambahkan email sebelum pengguna mendaftar atau masuk.</p>
-            </div>
-            <button class="compact-button" id="refreshUsers" type="button" title="Muat ulang pengguna" aria-label="Muat ulang pengguna">↻</button>
-          </div>
-          <form class="admin-create" id="adminUserForm">
-            <input id="adminUserEmail" type="email" required placeholder="Email pengguna" aria-label="Email pengguna">
-            <input id="adminUserName" maxlength="80" required placeholder="Nama pengguna" aria-label="Nama pengguna">
-            <select id="adminUserRole" aria-label="Role pengguna">
-              <option value="user" selected>User</option>
-              <option value="admin">Admin</option>
-            </select>
-            <button class="primary" type="submit">+ Tambah</button>
-          </form>
-          <p class="admin-feedback" id="adminFeedback" role="status"></p>
-          <div class="admin-user-list" id="adminUserList"></div>
-        </section>
-
         <div class="archive-header archive-only">
           <div>
             <h2>Arsip task selesai</h2>
@@ -2397,7 +2243,7 @@
   </dialog>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import {
       createUserWithEmailAndPassword,
       getAuth,
@@ -2410,7 +2256,17 @@
       signInWithEmailAndPassword,
       signInWithPopup,
       signOut
-    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      collection,
+      deleteDoc,
+      doc,
+      getDoc,
+      getDocs,
+      getFirestore,
+      serverTimestamp,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
     const storeKeyBase = "timeBoxTasks:v2";
     const ideaStoreKeyBase = "timeBoxIdeas:v2";
     const dirtyStoreKeyBase = "timeBoxSyncDirty:v2";
@@ -2423,6 +2279,7 @@
     const firebaseConfigured = requiredFirebaseKeys.every(key => firebaseConfig[key] && !String(firebaseConfig[key]).startsWith("GANTI_"));
     const firebaseApp = firebaseConfigured ? initializeApp(firebaseConfig) : null;
     const auth = firebaseApp ? getAuth(firebaseApp) : null;
+    const db = firebaseApp ? getFirestore(firebaseApp) : null;
     const remoteBackendAvailable = firebaseConfigured;
     const priorityRank = { high: 0, medium: 1, low: 2 };
     const priorityLabel = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
@@ -2442,6 +2299,11 @@
       syncEnabled: false,
       syncTimer: null,
       syncRetryTimer: null,
+      syncInFlight: false,
+      syncQueued: false,
+      syncRetryAttempt: 0,
+      remoteTasks: new Map(),
+      remoteIdeas: new Map(),
       installPrompt: null,
       calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       calendarDraggedId: null,
@@ -2450,8 +2312,6 @@
       focusDirty: false,
       focusSaveCounter: 0,
       user: null,
-      profile: null,
-      adminUsers: [],
       authNotice: "",
       authMode: "signin",
       localRevision: 0
@@ -2468,8 +2328,6 @@
       ideaCount: document.querySelector("#ideaCount"),
       ideaNavCount: document.querySelector("#ideaNavCount"),
       archiveNavCount: document.querySelector("#archiveNavCount"),
-      adminTab: document.querySelector("#adminTab"),
-      adminNavCount: document.querySelector("#adminNavCount"),
       archiveSummary: document.querySelector("#archiveSummary"),
       installApp: document.querySelector("#installApp"),
       reminderToggle: document.querySelector("#reminderToggle"),
@@ -2528,13 +2386,6 @@
       metricRate: document.querySelector("#metricRate"),
       weeklyChart: document.querySelector("#weeklyChart"),
       insightList: document.querySelector("#insightList"),
-      adminUserForm: document.querySelector("#adminUserForm"),
-      adminUserEmail: document.querySelector("#adminUserEmail"),
-      adminUserName: document.querySelector("#adminUserName"),
-      adminUserRole: document.querySelector("#adminUserRole"),
-      adminFeedback: document.querySelector("#adminFeedback"),
-      adminUserList: document.querySelector("#adminUserList"),
-      refreshUsers: document.querySelector("#refreshUsers"),
       editDialog: document.querySelector("#editDialog"),
       editForm: document.querySelector("#editForm"),
       editId: document.querySelector("#editId"),
@@ -2662,26 +2513,104 @@
       queueServerSync();
     }
 
-    async function remoteCall(action, payload) {
-      if (!state.user) throw new Error("Pengguna belum masuk.");
-      const token = await state.user.getIdToken();
-      const method = action === "getAppData" ? "GET" : action === "saveAppData" ? "PUT" : "POST";
-      const response = await fetch("/api/data", {
-        method,
-        headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`,
-          ...(method === "GET" ? {} : { "Content-Type": "application/json" })
-        },
-        body: method === "GET" ? undefined : JSON.stringify(action === "saveAppData" ? payload : { action, ...payload })
-      });
-      const result = await response.json().catch(() => ({ error: "Respons backend tidak valid." }));
-      if (!response.ok) {
-        const error = new Error(result.error || `Backend gagal (${response.status}).`);
-        error.status = response.status;
-        throw error;
+    function cleanRemoteItem(item) {
+      return JSON.parse(JSON.stringify(item));
+    }
+
+    function itemSignature(item) {
+      return JSON.stringify(cleanRemoteItem(item));
+    }
+
+    async function readRemoteCollection(name) {
+      const snapshot = await getDocs(collection(db, "users", state.user.uid, name));
+      return snapshot.docs.map(item => {
+        const stored = item.data()?.value;
+        return stored && typeof stored === "object" ? { ...stored, id: item.id } : null;
+      }).filter(Boolean);
+    }
+
+    async function commitRemoteOperations(operations) {
+      for (let offset = 0; offset < operations.length; offset += 400) {
+        const batch = writeBatch(db);
+        operations.slice(offset, offset + 400).forEach(operation => {
+          if (operation.type === "delete") batch.delete(operation.ref);
+          else batch.set(operation.ref, operation.data);
+        });
+        await batch.commit();
       }
-      return result;
+    }
+
+    async function writeRemoteChanges(tasks, ideas) {
+      if (tasks.length > 2000 || ideas.length > 1000) {
+        throw new Error("Batas data akun terlampaui.");
+      }
+
+      const operations = [];
+      const nextTasks = new Map();
+      const nextIdeas = new Map();
+      const collectChanges = (items, name, previous, next) => {
+        items.forEach(rawItem => {
+          const item = cleanRemoteItem(rawItem);
+          const id = String(item.id || "");
+          if (!id || id.includes("/")) return;
+          item.id = id;
+          const signature = itemSignature(item);
+          next.set(id, signature);
+          if (previous.get(id) !== signature) {
+            operations.push({
+              type: "set",
+              ref: doc(db, "users", state.user.uid, name, id),
+              data: { ownerUid: state.user.uid, value: item, updatedAt: serverTimestamp() }
+            });
+          }
+        });
+        previous.forEach((_signature, id) => {
+          if (!next.has(id)) {
+            operations.push({ type: "delete", ref: doc(db, "users", state.user.uid, name, id) });
+          }
+        });
+      };
+
+      collectChanges(tasks, "tasks", state.remoteTasks, nextTasks);
+      collectChanges(ideas, "ideas", state.remoteIdeas, nextIdeas);
+      await commitRemoteOperations(operations);
+      state.remoteTasks = nextTasks;
+      state.remoteIdeas = nextIdeas;
+      return operations.length;
+    }
+
+    async function remoteCall(action, payload) {
+      if (!state.user || !db) throw new Error("Pengguna belum masuk.");
+      if (action === "getAppData") {
+        let [tasks, ideas] = await Promise.all([
+          readRemoteCollection("tasks"),
+          readRemoteCollection("ideas")
+        ]);
+        state.remoteTasks = new Map(tasks.map(item => [String(item.id), itemSignature(item)]));
+        state.remoteIdeas = new Map(ideas.map(item => [String(item.id), itemSignature(item)]));
+
+        const legacyRef = doc(db, "users", state.user.uid, "app", "state");
+        const legacySnapshot = await getDoc(legacyRef);
+        if (legacySnapshot.exists()) {
+          const legacy = legacySnapshot.data();
+          const mergeById = (legacyItems, currentItems) => {
+            const merged = new Map();
+            (Array.isArray(legacyItems) ? legacyItems : []).forEach(item => {
+              if (item?.id) merged.set(String(item.id), item);
+            });
+            currentItems.forEach(item => merged.set(String(item.id), item));
+            return [...merged.values()];
+          };
+          tasks = mergeById(legacy.tasks, tasks);
+          ideas = mergeById(legacy.ideas, ideas);
+          await writeRemoteChanges(tasks, ideas);
+          await deleteDoc(legacyRef);
+        }
+        return { tasks, ideas };
+      }
+
+      const changed = await writeRemoteChanges(payload.tasks, payload.ideas);
+      return { ok: true, changed };
     }
 
     function showAccessDialog(message = "") {
@@ -2729,6 +2658,11 @@
       state.user = user;
       state.syncEnabled = false;
       state.localRevision = 0;
+      state.syncInFlight = false;
+      state.syncQueued = false;
+      state.syncRetryAttempt = 0;
+      state.remoteTasks = new Map();
+      state.remoteIdeas = new Map();
       stopTimer();
       state.activeId = null;
       loadTasks();
@@ -2756,8 +2690,11 @@
       clearTimeout(state.syncRetryTimer);
       stopTimer();
       state.user = null;
-      state.profile = null;
-      state.adminUsers = [];
+      state.syncInFlight = false;
+      state.syncQueued = false;
+      state.syncRetryAttempt = 0;
+      state.remoteTasks = new Map();
+      state.remoteIdeas = new Map();
       state.tasks = [];
       state.ideas = [];
       state.activeId = null;
@@ -2765,49 +2702,66 @@
       state.secondsLeft = state.timerTotal;
       els.syncStatus.textContent = "Masuk untuk menyinkronkan";
       render();
-      showAccessDialog(authNotice || (firebaseConfigured ? "" : "Firebase belum dikonfigurasi. Ikuti panduan SETUP-HYBRID.md."));
+      showAccessDialog(authNotice || (firebaseConfigured ? "" : "Firebase belum dikonfigurasi. Ikuti panduan FIREBASE-SETUP.md."));
     }
 
-    function handleSyncError(error) {
-      if (error.status === 403) {
-        state.authNotice = error.message || "Akun belum diaktifkan admin.";
-        if (auth && state.user) signOut(auth).catch(console.error);
-        return;
-      }
-      els.syncStatus.textContent = "Sinkronisasi tertunda · data lokal aman";
-      scheduleSyncRetry();
+    function handleSyncError(error, retryAction = pushServerData) {
+      els.syncStatus.textContent = "Sinkronisasi tertunda · akan dicoba kembali";
+      scheduleSyncRetry(retryAction);
     }
 
     function queueServerSync() {
       if (!remoteBackendAvailable || !state.syncEnabled) return;
+      if (state.syncInFlight) {
+        state.syncQueued = true;
+        return;
+      }
       clearTimeout(state.syncTimer);
       els.syncStatus.textContent = "Menunggu sinkronisasi...";
-      state.syncTimer = setTimeout(pushServerData, 650);
+      state.syncTimer = setTimeout(pushServerData, 2000);
     }
 
     async function pushServerData() {
       if (!remoteBackendAvailable || !state.user) return;
+      if (state.syncInFlight) {
+        state.syncQueued = true;
+        return false;
+      }
       clearTimeout(state.syncTimer);
+      state.syncInFlight = true;
+      state.syncQueued = false;
+      const revisionAtStart = state.localRevision;
       els.syncStatus.textContent = "Menyinkronkan...";
       try {
         const result = await remoteCall("saveAppData", { tasks: tasksForRemote(), ideas: state.ideas });
-        if (result.profile) state.profile = result.profile;
         clearTimeout(state.syncRetryTimer);
-        localStorage.removeItem(dirtyStoreKey());
-        els.syncStatus.textContent = "Tersinkron · spreadsheet pribadi";
-        renderAdmin();
+        state.syncRetryAttempt = 0;
+        if (state.localRevision === revisionAtStart) {
+          localStorage.removeItem(dirtyStoreKey());
+        } else {
+          state.syncQueued = true;
+        }
+        els.syncStatus.textContent = result.changed
+          ? `Tersinkron · ${result.changed} perubahan`
+          : "Tersinkron · data terbaru";
         return true;
       } catch (error) {
         handleSyncError(error);
         console.error(error);
         return false;
+      } finally {
+        state.syncInFlight = false;
+        if (state.syncQueued && state.syncRetryAttempt === 0) queueServerSync();
       }
     }
 
-    function scheduleSyncRetry() {
+    function scheduleSyncRetry(retryAction = pushServerData) {
       if (!remoteBackendAvailable || !state.syncEnabled) return;
       clearTimeout(state.syncRetryTimer);
-      state.syncRetryTimer = setTimeout(syncFromServer, 10000);
+      state.syncRetryAttempt += 1;
+      const baseDelay = Math.min(60000, 1500 * (2 ** (state.syncRetryAttempt - 1)));
+      const delay = Math.round(baseDelay * (0.8 + Math.random() * 0.4));
+      state.syncRetryTimer = setTimeout(retryAction, delay);
     }
 
     async function syncFromServer() {
@@ -2815,7 +2769,11 @@
         els.syncStatus.textContent = "Tersimpan lokal";
         return;
       }
-      els.syncStatus.textContent = "Menghubungkan spreadsheet pribadi...";
+      if (state.syncInFlight) {
+        state.syncQueued = true;
+        return false;
+      }
+      els.syncStatus.textContent = "Menghubungkan database pribadi...";
       const revisionAtStart = state.localRevision;
       try {
         const remote = await remoteCall("getAppData");
@@ -2841,17 +2799,17 @@
         localStorage.setItem(userStoreKey(ideaStoreKeyBase), JSON.stringify(state.ideas));
         localStorage.removeItem(dirtyStoreKey());
         clearTimeout(state.syncRetryTimer);
+        state.syncRetryAttempt = 0;
         stopTimer();
         state.activeId = null;
-        state.profile = remote.profile || null;
         render();
         const nextTask = state.tasks.find(task => !task.done && !task.archivedAt);
         if (nextTask) chooseTask(nextTask.id);
-        els.syncStatus.textContent = "Tersinkron · spreadsheet pribadi";
+        els.syncStatus.textContent = "Tersinkron · data pribadi";
         if (recurringCreated) saveTasks();
         return true;
       } catch (error) {
-        handleSyncError(error);
+        handleSyncError(error, syncFromServer);
         console.error(error);
         return false;
       }
@@ -3011,16 +2969,13 @@
     }
 
     function setView(view) {
-      const allowedViews = ["tasks", "ideas", "calendar", "dashboard", "archive", "admin"];
-      state.view = allowedViews.includes(view) ? view : "tasks";
-      if (state.view === "admin" && state.profile?.role !== "admin") state.view = "tasks";
+      state.view = ["tasks", "ideas", "calendar", "dashboard", "archive"].includes(view) ? view : "tasks";
       closeTaskComposer();
       document.body.classList.toggle("view-tasks", state.view === "tasks");
       document.body.classList.toggle("view-ideas", state.view === "ideas");
       document.body.classList.toggle("view-archive", state.view === "archive");
       document.body.classList.toggle("view-calendar", state.view === "calendar");
       document.body.classList.toggle("view-dashboard", state.view === "dashboard");
-      document.body.classList.toggle("view-admin", state.view === "admin");
       els.viewTabs.forEach(tab => {
         const active = tab.dataset.view === state.view;
         tab.classList.toggle("active", active);
@@ -3029,9 +2984,6 @@
       if (state.view === "ideas") {
         renderIdeas();
         requestAnimationFrame(() => els.ideaTitle.focus());
-      } else if (state.view === "admin") {
-        renderAdmin();
-        loadAdminUsers();
       } else {
         render();
       }
@@ -3090,7 +3042,6 @@
       renderTimer();
       renderCalendar();
       renderDashboard();
-      renderAdmin();
       document.body.classList.toggle("manual-sort", els.sortBy.value === "manual" && state.view === "tasks");
       const tasks = visibleTasks();
 
@@ -3348,102 +3299,6 @@
         <div class="insight-row"><span>Rutinitas aktif</span><strong>${recurringOpen}</strong></div>
         <div class="insight-row"><span>Total fokus</span><strong>${formatDuration(totalFocus)}</strong></div>
       `;
-    }
-
-    function renderAdmin() {
-      const isAdmin = state.profile?.role === "admin";
-      els.adminTab.hidden = !isAdmin;
-      els.adminNavCount.textContent = isAdmin ? state.adminUsers.length : 0;
-      if (!isAdmin) {
-        els.adminUserList.innerHTML = "";
-        return;
-      }
-      if (!state.adminUsers.length) {
-        els.adminUserList.innerHTML = '<div class="idea-empty">Belum ada data pengguna.</div>';
-        return;
-      }
-
-      els.adminUserList.innerHTML = state.adminUsers.map(user => `
-        <div class="admin-user" data-user-id="${escapeHtml(String(user.id))}">
-          <div class="admin-identity">
-            <strong>${escapeHtml(String(user.name || "Pengguna"))}</strong>
-            <span>${escapeHtml(String(user.email || ""))}${user.lastSyncAt ? ` · Sync ${formatAdminDate(user.lastSyncAt)}` : ""}</span>
-          </div>
-          <span class="admin-state ${user.linked ? "linked" : ""}">${user.linked ? "UID tertaut" : "Menunggu login"}</span>
-          <select data-admin-field="role" aria-label="Role ${escapeHtml(String(user.email || "pengguna"))}">
-            <option value="user" ${user.role === "user" ? "selected" : ""}>User</option>
-            <option value="admin" ${user.role === "admin" ? "selected" : ""}>Admin</option>
-          </select>
-          <select data-admin-field="status" aria-label="Status ${escapeHtml(String(user.email || "pengguna"))}">
-            <option value="active" ${user.status === "active" ? "selected" : ""}>Aktif</option>
-            <option value="disabled" ${user.status === "disabled" ? "selected" : ""}>Nonaktif</option>
-          </select>
-          <div>
-            <button class="compact-button" type="button" data-action="save-user" title="Simpan pengguna" aria-label="Simpan pengguna">✓</button>
-            ${user.databaseUrl ? `<a class="admin-open" href="${escapeHtml(String(user.databaseUrl))}" target="_blank" rel="noopener">Sheet</a>` : ""}
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function formatAdminDate(value) {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "-";
-      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
-    }
-
-    async function loadAdminUsers() {
-      if (state.profile?.role !== "admin") return;
-      els.adminFeedback.textContent = "Memuat pengguna...";
-      try {
-        const result = await remoteCall("listUsers", {});
-        state.adminUsers = Array.isArray(result.users) ? result.users : [];
-        els.adminFeedback.textContent = `${state.adminUsers.length} pengguna terdaftar.`;
-        renderAdmin();
-      } catch (error) {
-        els.adminFeedback.textContent = error.message || "Gagal memuat pengguna.";
-      }
-    }
-
-    async function createAdminUser(event) {
-      event.preventDefault();
-      els.adminFeedback.textContent = "Membuat database pengguna...";
-      const submitButton = els.adminUserForm.querySelector('button[type="submit"]');
-      submitButton.disabled = true;
-      try {
-        await remoteCall("createUser", {
-          email: els.adminUserEmail.value.trim(),
-          name: els.adminUserName.value.trim(),
-          role: els.adminUserRole.value
-        });
-        els.adminUserForm.reset();
-        els.adminUserRole.value = "user";
-        await loadAdminUsers();
-        els.adminFeedback.textContent = "Pengguna dan spreadsheet berhasil dibuat.";
-      } catch (error) {
-        els.adminFeedback.textContent = error.message || "Gagal membuat pengguna.";
-      } finally {
-        submitButton.disabled = false;
-      }
-    }
-
-    async function updateAdminUser(row) {
-      const id = row.dataset.userId;
-      const button = row.querySelector('[data-action="save-user"]');
-      button.disabled = true;
-      els.adminFeedback.textContent = "Menyimpan perubahan...";
-      try {
-        await remoteCall("updateUser", {
-          id,
-          role: row.querySelector('[data-admin-field="role"]').value,
-          status: row.querySelector('[data-admin-field="status"]').value
-        });
-        await loadAdminUsers();
-        els.adminFeedback.textContent = "Perubahan pengguna tersimpan.";
-      } catch (error) {
-        els.adminFeedback.textContent = error.message || "Gagal mengubah pengguna.";
-        button.disabled = false;
-      }
     }
 
     function changeCalendarMonth(offset) {
@@ -3883,7 +3738,7 @@
     els.accessForm.addEventListener("submit", async event => {
       event.preventDefault();
       if (!auth) {
-        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti FIREBASE-SETUP.md.";
         return;
       }
       const email = els.authEmail.value.trim();
@@ -3906,7 +3761,7 @@
 
     els.googleSignIn.addEventListener("click", async () => {
       if (!auth) {
-        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti FIREBASE-SETUP.md.";
         return;
       }
       els.accessError.textContent = "Membuka Google...";
@@ -3928,7 +3783,7 @@
     els.resetPassword.addEventListener("click", async () => {
       const email = els.authEmail.value.trim();
       if (!auth) {
-        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti SETUP-HYBRID.md.";
+        els.accessError.textContent = "Firebase belum dikonfigurasi. Ikuti FIREBASE-SETUP.md.";
         return;
       }
       if (!email) {
@@ -3979,13 +3834,6 @@
       if (!event.matches) closeTaskComposer();
     });
     els.ideaForm.addEventListener("submit", addIdea);
-    els.adminUserForm.addEventListener("submit", createAdminUser);
-    els.refreshUsers.addEventListener("click", loadAdminUsers);
-    els.adminUserList.addEventListener("click", event => {
-      const button = event.target.closest('[data-action="save-user"]');
-      const row = event.target.closest(".admin-user");
-      if (button && row) updateAdminUser(row);
-    });
     els.search.addEventListener("input", render);
     els.sortBy.addEventListener("change", render);
     els.startPause.addEventListener("click", () => {
