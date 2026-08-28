@@ -238,6 +238,78 @@
       color: #ffffff;
     }
 
+    .install-banner {
+      position: fixed;
+      z-index: 65;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      width: min(470px, calc(100% - 24px));
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 18px 50px rgba(23, 32, 42, 0.22);
+      transform: translateX(-50%);
+    }
+
+    .install-banner[hidden],
+    body.locked .install-banner,
+    body.composer-open .install-banner {
+      display: none;
+    }
+
+    .install-banner > img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .install-banner-copy {
+      min-width: 0;
+    }
+
+    .install-banner-copy strong,
+    .install-banner-copy span {
+      display: block;
+    }
+
+    .install-banner-copy strong {
+      font-size: 13px;
+    }
+
+    .install-banner-copy span {
+      margin-top: 2px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .install-banner-action {
+      min-height: 34px;
+      padding: 0 13px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .install-banner-close {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1;
+    }
+
     .theme-icon-sun {
       display: none;
     }
@@ -1615,6 +1687,14 @@
       color: #082f2a;
     }
 
+    :root[data-theme="dark"] .install-banner {
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.52);
+    }
+
+    :root[data-theme="dark"] .install-banner-action {
+      color: #082f2a;
+    }
+
     :root[data-theme="dark"] .export-tool {
       background: #12382d;
       border-color: #27765e;
@@ -1848,6 +1928,10 @@
         line-height: 1;
       }
 
+      .install-banner {
+        bottom: calc(88px + env(safe-area-inset-bottom));
+      }
+
       body.composer-open .task-fab {
         display: none;
       }
@@ -1884,6 +1968,10 @@
 
       h1 {
         font-size: 27px;
+      }
+
+      .install-banner-copy span {
+        display: none;
       }
 
       .today {
@@ -2236,6 +2324,16 @@
     </main>
   </div>
 
+  <aside class="install-banner" id="installBanner" aria-label="Instal aplikasi" hidden>
+    <img src="/icons/logo-96-v4.png" alt="" width="42" height="42">
+    <div class="install-banner-copy">
+      <strong>Instal Time Boxing</strong>
+      <span>Buka lebih cepat dari layar utama perangkat.</span>
+    </div>
+    <button class="install-banner-action" id="installBannerAction" type="button">Instal</button>
+    <button class="install-banner-close" id="dismissInstallBanner" type="button" title="Tutup" aria-label="Tutup banner instal">×</button>
+  </aside>
+
   <button class="composer-backdrop" id="composerBackdrop" type="button" tabindex="-1" aria-label="Tutup form tambah task"></button>
   <button class="task-fab" id="openTaskComposer" type="button" aria-label="Tambah task" aria-controls="taskForm" aria-expanded="false" title="Tambah task">+</button>
 
@@ -2363,6 +2461,7 @@
     const themeStoreKey = "timeBoxTheme:v1";
     const reminderHistoryKey = "timeBoxReminderHistory:v1";
     const reminderEnabledKey = "timeBoxRemindersEnabled:v1";
+    const installBannerDismissedKey = "timeBoxInstallBannerDismissed:v1";
     const remoteMetaId = "__timeboxing_meta_v2__";
     const firebaseConfig = window.FIREBASE_CONFIG || {};
     const requiredFirebaseKeys = ["apiKey", "authDomain", "projectId", "appId"];
@@ -2420,6 +2519,9 @@
       archiveNavCount: document.querySelector("#archiveNavCount"),
       archiveSummary: document.querySelector("#archiveSummary"),
       installApp: document.querySelector("#installApp"),
+      installBanner: document.querySelector("#installBanner"),
+      installBannerAction: document.querySelector("#installBannerAction"),
+      dismissInstallBanner: document.querySelector("#dismissInstallBanner"),
       installDialog: document.querySelector("#installDialog"),
       installCopy: document.querySelector("#installCopy"),
       closeInstall: document.querySelector("#closeInstall"),
@@ -2721,6 +2823,7 @@
       document.body.classList.remove("locked");
       els.accessError.textContent = "";
       if (els.accessDialog.open) els.accessDialog.close();
+      updateInstallButton();
     }
 
     function renderAuthMode() {
@@ -4124,7 +4227,10 @@
     }
 
     function updateInstallButton() {
-      els.installApp.hidden = isInstalledApp();
+      const installed = isInstalledApp();
+      const dismissed = sessionStorage.getItem(installBannerDismissedKey) === "true";
+      els.installApp.hidden = installed;
+      els.installBanner.hidden = installed || dismissed;
     }
 
     function showInstallHelp() {
@@ -4141,7 +4247,7 @@
       updateInstallButton();
     });
 
-    els.installApp.addEventListener("click", async () => {
+    async function requestAppInstall() {
       if (!state.installPrompt) {
         showInstallHelp();
         return;
@@ -4150,7 +4256,17 @@
       await prompt.prompt();
       const choice = await prompt.userChoice;
       state.installPrompt = null;
-      if (choice.outcome === "accepted") els.installApp.hidden = true;
+      if (choice.outcome === "accepted") {
+        els.installApp.hidden = true;
+        els.installBanner.hidden = true;
+      }
+    }
+
+    els.installApp.addEventListener("click", requestAppInstall);
+    els.installBannerAction.addEventListener("click", requestAppInstall);
+    els.dismissInstallBanner.addEventListener("click", () => {
+      sessionStorage.setItem(installBannerDismissedKey, "true");
+      els.installBanner.hidden = true;
     });
 
     els.closeInstall.addEventListener("click", () => els.installDialog.close());
@@ -4162,6 +4278,7 @@
     window.addEventListener("appinstalled", () => {
       state.installPrompt = null;
       els.installApp.hidden = true;
+      els.installBanner.hidden = true;
       els.syncStatus.textContent = "Aplikasi berhasil diinstal";
     });
 

@@ -39,6 +39,8 @@ File `firestore.rules` tidak otomatis dipublikasikan oleh Netlify. Aturan harus 
 - Android: klik tombol instal di aplikasi atau pilih **Instal aplikasi** dari menu Chrome.
 - iPhone/iPad: buka dengan Safari, pilih **Bagikan**, lalu **Tambahkan ke Layar Utama**.
 
+Saat dibuka melalui browser dan belum terpasang, aplikasi menampilkan banner instal otomatis setelah pengguna masuk. Browser tetap memerlukan satu klik pada tombol **Instal** sebelum menampilkan konfirmasi sistem.
+
 Setelah mengganti ikon atau service worker, gunakan **Clear cache and deploy site** di Netlify lalu muat ulang aplikasi satu kali.
 
 Versi ini tidak memakai GAS maupun Netlify Functions. Pengguna dapat dikelola melalui **Firebase Console > Authentication > Users**.

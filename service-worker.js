@@ -1,4 +1,4 @@
-const CACHE_NAME = "task-timeboxing-firebase-v5";
+const CACHE_NAME = "task-timeboxing-firebase-v6";
 const APP_SHELL = [
   "/",
   "/index.html",
