@@ -1,10 +1,15 @@
-const CACHE_NAME = "task-timeboxing-firebase-v2";
+const CACHE_NAME = "task-timeboxing-firebase-v4";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/icons/favicon-64-v4.png",
+  "/icons/apple-touch-icon-v4.png",
+  "/icons/logo-96-v4.png",
+  "/icons/icon-192-v4.png",
+  "/icons/icon-512-v4.png",
+  "/icons/icon-maskable-192-v4.png",
+  "/icons/icon-maskable-512-v4.png"
 ];
 
 self.addEventListener("install", event => {

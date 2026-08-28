@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function ownsPath(userId) {
+      return request.auth != null
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true;
+    }
+
+    function validTask(userId, taskId) {
+      return request.resource.data.keys().hasOnly(['ownerUid', 'value', 'updatedAt'])
+        && request.resource.data.ownerUid == userId
+        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.value is map
+        && request.resource.data.value.id == taskId
+        && request.resource.data.value.title is string
+        && request.resource.data.value.title.size() <= 90;
+    }
+
+    function validIdea(userId, ideaId) {
+      return request.resource.data.keys().hasOnly(['ownerUid', 'value', 'updatedAt'])
+        && request.resource.data.ownerUid == userId
+        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.value is map
+        && request.resource.data.value.id == ideaId
+        && request.resource.data.value.title is string
+        && request.resource.data.value.title.size() <= 120;
+    }
+
+    match /users/{userId}/tasks/{taskId} {
+      allow read, delete: if ownsPath(userId);
+      allow create, update: if ownsPath(userId) && validTask(userId, taskId);
+    }
+
+    match /users/{userId}/ideas/{ideaId} {
+      allow read, delete: if ownsPath(userId);
+      allow create, update: if ownsPath(userId) && validIdea(userId, ideaId);
+    }
+
+    // Hanya untuk migrasi otomatis dari format satu dokumen versi lama.
+    match /users/{userId}/app/{documentId} {
+      allow read, delete: if documentId == 'state' && ownsPath(userId);
+    }
+  }
+}

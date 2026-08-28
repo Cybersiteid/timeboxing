@@ -1,47 +1,44 @@
-# Deploy Task Time Boxing Hybrid Multi-Pengguna
+# Deploy Task Time Boxing Firebase
 
-Arsitektur aplikasi:
+Gunakan `FIREBASE-SETUP.md` sebagai panduan utama.
+
+## Arsitektur
 
 ```text
-Browser / PWA
-  -> Firebase Authentication
-  -> Netlify Function (verifikasi ID token)
-  -> satu backend Google Apps Script
-  -> satu spreadsheet pribadi untuk setiap pengguna
+Netlify / PWA -> Firebase Authentication -> Cloud Firestore
 ```
 
-Firebase hanya dipakai untuk login. Task, ide, kalender, dan statistik disimpan di spreadsheet pribadi milik sistem.
+Setiap pengguna mempunyai koleksi task dan ide berdasarkan UID. Firestore Security Rules mencegah akun membaca jalur UID pengguna lain.
 
-## Urutan deploy
+## Isi yang harus diunggah
 
-1. Ikuti semua tahap pada `SETUP-HYBRID.md`.
-2. Isi `firebase-config.js` dengan konfigurasi Firebase Web.
-3. Siapkan Google Apps Script memakai isi folder `gas`.
-4. Tambahkan empat environment variable Netlify: `GAS_API_URL`, `GAS_API_TOKEN`, `FIREBASE_PROJECT_ID`, dan `FIREBASE_SERVICE_ACCOUNT_JSON`.
-5. Upload seluruh isi folder ini ke root repository GitHub, termasuk `package.json`, `.nvmrc`, folder `netlify`, dan folder `gas`.
-6. Hubungkan repository ke Netlify lalu jalankan **Clear cache and deploy site**.
+- `index.html`
+- `firebase-config.js`
+- `firestore.rules`
+- `firebase.json`
+- `netlify.toml`
+- `_headers`
+- `service-worker.js`
+- `manifest.webmanifest`
+- folder `icons`
 
-`GAS_API_TOKEN` dan `FIREBASE_SERVICE_ACCOUNT_JSON` adalah rahasia. Simpan hanya di environment variable Netlify, jangan di GitHub atau `firebase-config.js`.
+File `firestore.rules` tidak otomatis dipublikasikan oleh Netlify. Aturan harus dipublikasikan melalui Firebase Console atau Firebase CLI.
 
-## Cara admin menambah pengguna
+## Pemeriksaan setelah deploy
 
-1. Masuk menggunakan email admin yang ditentukan di `BOOTSTRAP_ADMIN_EMAIL`.
-2. Buka menu **Admin**.
-3. Isi email, nama, dan peran pengguna.
-4. Aplikasi langsung membuat spreadsheet khusus untuk email tersebut.
-5. Pengguna mendaftar atau masuk ke aplikasi menggunakan email yang sama.
+1. Pastikan tidak ada nilai `GANTI_...` pada `firebase-config.js`.
+2. Pastikan domain Netlify terdaftar di Firebase Authorized domains.
+3. Pastikan Rules sudah dipublikasikan.
+4. Uji pendaftaran, verifikasi email, login Google, dan pemulihan kata sandi.
+5. Uji isolasi menggunakan dua akun berbeda.
+6. Pantau pemakaian melalui **Firestore Database > Usage**.
 
-Admin hanya memberi izin email dan membuat spreadsheet. Kata sandi dikelola Firebase dan tidak pernah disimpan di GAS maupun Google Sheets.
+## Instal sebagai aplikasi
 
-## Data lama
+- Chrome atau Edge desktop: klik tombol **Instal aplikasi** di kanan atas aplikasi.
+- Android: klik tombol instal di aplikasi atau pilih **Instal aplikasi** dari menu Chrome.
+- iPhone/iPad: buka dengan Safari, pilih **Bagikan**, lalu **Tambahkan ke Layar Utama**.
 
-Masuk ke akun tujuan, lalu impor file backup JSON melalui tombol impor. Data akan disinkronkan ke spreadsheet akun yang sedang aktif.
+Setelah mengganti ikon atau service worker, gunakan **Clear cache and deploy site** di Netlify lalu muat ulang aplikasi satu kali.
 
-## Pemeriksaan akhir
-
-1. Uji login admin dan pastikan menu **Admin** tampil.
-2. Buat satu pengguna percobaan dan buka tautan spreadsheet-nya.
-3. Masuk sebagai pengguna tersebut di browser lain.
-4. Buat task, muat ulang halaman, lalu periksa task pada spreadsheet pengguna.
-5. Pastikan akun pengguna lain tidak dapat melihat data tersebut.
-
+Versi ini tidak memakai GAS maupun Netlify Functions. Pengguna dapat dikelola melalui **Firebase Console > Authentication > Users**.

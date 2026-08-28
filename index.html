@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-title" content="Time Boxing">
   <title>Task Time Boxing</title>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="icon" href="/icons/favicon-64-v4.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon-v4.png">
   <script src="/firebase-config.js"></script>
   <script>
     (() => {
@@ -96,6 +96,24 @@
       align-items: end;
       padding: 10px 0 16px;
       border-bottom: 1px solid var(--line);
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      flex: 0 0 54px;
+      object-fit: contain;
+    }
+
+    .brand-copy {
+      min-width: 0;
     }
 
     .app-nav {
@@ -1439,11 +1457,47 @@
       width: min(410px, calc(100% - 28px));
     }
 
+    .install-dialog {
+      width: min(390px, calc(100% - 28px));
+    }
+
+    .install-dialog-mark {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 12px;
+      object-fit: contain;
+    }
+
+    .install-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
     .access-copy {
       margin: -4px 0 16px;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.55;
+    }
+
+    .access-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .access-brand img {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      object-fit: contain;
+    }
+
+    .access-brand h2 {
+      margin: 0;
     }
 
     .access-error {
@@ -1814,6 +1868,16 @@
         padding-top: 16px;
       }
 
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+
       .today {
         min-width: 0;
       }
@@ -1913,9 +1977,12 @@
 <body class="locked">
   <div class="app">
     <header>
-      <div>
-        <h1>Task Time Boxing</h1>
-        <p class="subhead">Susun pekerjaan, beri batas waktu yang jelas, lalu jalankan timer untuk satu fokus kecil pada satu waktu.</p>
+      <div class="brand-lockup">
+        <img class="brand-mark" src="/icons/logo-96-v4.png" alt="" width="54" height="54">
+        <div class="brand-copy">
+          <h1>Task Time Boxing</h1>
+          <p class="subhead">Susun pekerjaan, beri batas waktu yang jelas, lalu jalankan timer untuk satu fokus kecil pada satu waktu.</p>
+        </div>
       </div>
       <div class="today" aria-live="polite">
         <strong id="todayDay">Hari ini</strong>
@@ -2219,9 +2286,24 @@
     </form>
   </dialog>
 
+  <dialog class="install-dialog" id="installDialog">
+    <div class="dialog-form">
+      <div class="dialog-header">
+        <h2>Instal Time Boxing</h2>
+        <button class="dialog-close" id="closeInstall" type="button" title="Tutup" aria-label="Tutup">×</button>
+      </div>
+      <img class="install-dialog-mark" src="/icons/logo-96-v4.png" alt="" width="64" height="64">
+      <p class="install-copy" id="installCopy"></p>
+      <div class="dialog-actions">
+        <button class="primary" id="confirmInstallHelp" type="button">Mengerti</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="access-dialog" id="accessDialog">
     <form class="dialog-form" id="accessForm">
-      <div class="dialog-header">
+      <div class="access-brand">
+        <img src="/icons/logo-96-v4.png" alt="" width="52" height="52">
         <h2 id="authTitle">Masuk ke Task Time Boxing</h2>
       </div>
       <p class="access-copy" id="authCopy">Gunakan akun Anda agar task tersimpan pribadi dan tersedia di semua perangkat.</p>
@@ -2330,6 +2412,10 @@
       archiveNavCount: document.querySelector("#archiveNavCount"),
       archiveSummary: document.querySelector("#archiveSummary"),
       installApp: document.querySelector("#installApp"),
+      installDialog: document.querySelector("#installDialog"),
+      installCopy: document.querySelector("#installCopy"),
+      closeInstall: document.querySelector("#closeInstall"),
+      confirmInstallHelp: document.querySelector("#confirmInstallHelp"),
       reminderToggle: document.querySelector("#reminderToggle"),
       ideaTabs: document.querySelectorAll(".idea-tab"),
       viewTabs: document.querySelectorAll(".view-tab"),
@@ -3627,7 +3713,7 @@
       try {
         const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.ready : null;
         if (registration) {
-          await registration.showNotification(title, { body, tag, icon: "/icons/icon-192.png" });
+          await registration.showNotification(title, { body, tag, icon: "/icons/icon-192-v4.png" });
         } else {
           new Notification(title, { body, tag });
         }
@@ -4003,23 +4089,55 @@
       });
     });
 
+    const standaloneMode = window.matchMedia("(display-mode: standalone)");
+
+    function isInstalledApp() {
+      return standaloneMode.matches || window.navigator.standalone === true;
+    }
+
+    function updateInstallButton() {
+      els.installApp.hidden = isInstalledApp();
+    }
+
+    function showInstallHelp() {
+      const isAppleMobile = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      els.installCopy.textContent = isAppleMobile
+        ? "Buka menu Bagikan di Safari, lalu pilih Tambahkan ke Layar Utama."
+        : "Buka menu browser dan pilih Instal aplikasi atau Tambahkan ke layar utama.";
+      els.installDialog.showModal();
+    }
+
     window.addEventListener("beforeinstallprompt", event => {
       event.preventDefault();
       state.installPrompt = event;
-      els.installApp.hidden = false;
+      updateInstallButton();
     });
 
     els.installApp.addEventListener("click", async () => {
-      if (!state.installPrompt) return;
-      await state.installPrompt.prompt();
+      if (!state.installPrompt) {
+        showInstallHelp();
+        return;
+      }
+      const prompt = state.installPrompt;
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
       state.installPrompt = null;
-      els.installApp.hidden = true;
+      if (choice.outcome === "accepted") els.installApp.hidden = true;
+    });
+
+    els.closeInstall.addEventListener("click", () => els.installDialog.close());
+    els.confirmInstallHelp.addEventListener("click", () => els.installDialog.close());
+    els.installDialog.addEventListener("click", event => {
+      if (event.target === els.installDialog) els.installDialog.close();
     });
 
     window.addEventListener("appinstalled", () => {
       state.installPrompt = null;
       els.installApp.hidden = true;
+      els.syncStatus.textContent = "Aplikasi berhasil diinstal";
     });
+
+    standaloneMode.addEventListener?.("change", updateInstallButton);
 
     window.addEventListener("online", () => {
       if (state.user) syncFromServer();
@@ -4036,6 +4154,7 @@
     }
 
     applyTheme(document.documentElement.dataset.theme, false);
+    updateInstallButton();
     updateReminderButton();
     initDate();
     setView("tasks");
