@@ -412,6 +412,10 @@
       text-align: center;
     }
 
+    .timer[hidden] {
+      display: none;
+    }
+
     .timer .section-title {
       margin-bottom: 10px;
       color: var(--muted);
@@ -1782,6 +1786,10 @@
         border-top: 0;
       }
 
+      body:not(.timer-active):not(.composer-open) .composer {
+        display: none;
+      }
+
       body.composer-open {
         overflow: hidden;
       }
@@ -2115,7 +2123,7 @@
           <button class="primary" type="submit" title="Tambah task">+ Tambah ke daftar</button>
         </form>
 
-        <section class="timer" aria-label="Timer time box">
+        <section class="timer" id="timerPanel" aria-label="Timer time box" hidden>
           <h2 class="section-title">Timer fokus</h2>
           <div class="timer-face" id="timerFace" style="--progress: 0deg;">
             <div>
@@ -2450,6 +2458,7 @@
       timerDisplay: document.querySelector("#timerDisplay"),
       timerTask: document.querySelector("#timerTask"),
       timerFace: document.querySelector("#timerFace"),
+      timerPanel: document.querySelector("#timerPanel"),
       startPause: document.querySelector("#startPause"),
       resetTimer: document.querySelector("#resetTimer"),
       finishTask: document.querySelector("#finishTask"),
@@ -2758,8 +2767,6 @@
       els.accessKeyButton.setAttribute("aria-label", els.accessKeyButton.title);
       unlockInterface();
       setView("tasks");
-      const firstActiveTask = state.tasks.find(task => !task.done && !task.archivedAt);
-      if (firstActiveTask) chooseTask(firstActiveTask.id);
       render();
       if (navigator.onLine) {
         await syncFromServer();
@@ -2855,6 +2862,9 @@
         els.syncStatus.textContent = "Tersimpan lokal";
         return;
       }
+      if (currentTask()) {
+        return await pushServerData();
+      }
       if (state.syncInFlight) {
         state.syncQueued = true;
         return false;
@@ -2889,8 +2899,6 @@
         stopTimer();
         state.activeId = null;
         render();
-        const nextTask = state.tasks.find(task => !task.done && !task.archivedAt);
-        if (nextTask) chooseTask(nextTask.id);
         els.syncStatus.textContent = "Tersinkron · data pribadi";
         if (recurringCreated) saveTasks();
         return true;
@@ -2975,7 +2983,6 @@
       saveTasks();
       saveIdeas();
       setView("tasks");
-      chooseTask(task.id);
     }
 
     function addTask(event) {
@@ -3010,7 +3017,6 @@
       els.priority.value = "medium";
       els.recurrence.value = "none";
       render();
-      chooseTask(task.id);
       closeTaskComposer();
     }
 
@@ -3188,7 +3194,7 @@
             ` : `
               <button class="square drag-handle" draggable="true" type="button" title="Seret untuk mengurutkan" data-action="drag">↕</button>
               <button class="square" type="button" title="Edit task" data-action="edit">✎</button>
-              ${!task.done ? '<button class="square" type="button" title="Pakai di timer" data-action="select">▶</button>' : ""}
+              ${!task.done ? '<button class="square" type="button" title="Mulai timer fokus" aria-label="Mulai timer fokus" data-action="select">▶</button>' : ""}
               ${task.done ? '<button class="square" type="button" title="Arsipkan task" aria-label="Arsipkan task" data-action="archive">□</button>' : ""}
               <button class="square danger" type="button" title="Hapus task" data-action="delete">×</button>
             `}
@@ -3431,28 +3437,40 @@
 
     function renderTimer() {
       const task = currentTask();
+      const timerActive = Boolean(task);
+      els.timerPanel.hidden = !timerActive;
+      document.body.classList.toggle("timer-active", timerActive);
+      if (!task) return;
+
       const minutes = Math.floor(state.secondsLeft / 60).toString().padStart(2, "0");
       const seconds = (state.secondsLeft % 60).toString().padStart(2, "0");
       const elapsed = Math.max(0, state.timerTotal - state.secondsLeft);
       const degrees = state.timerTotal ? Math.round((elapsed / state.timerTotal) * 360) : 0;
 
       els.timerDisplay.textContent = `${minutes}:${seconds}`;
-      els.timerTask.textContent = task ? task.title : "Pilih task untuk mulai";
+      els.timerTask.textContent = task.title;
       els.timerFace.style.setProperty("--progress", `${degrees}deg`);
       els.startPause.textContent = state.running ? "Ⅱ" : "▶";
-      els.startPause.disabled = !task;
-      els.resetTimer.disabled = !task;
-      els.finishTask.disabled = !task;
+      els.startPause.disabled = false;
+      els.resetTimer.disabled = false;
+      els.finishTask.disabled = false;
     }
 
-    function chooseTask(id) {
+    function chooseTask(id, startImmediately = false) {
       const task = state.tasks.find(item => item.id === id);
       if (!task || task.archivedAt || task.done) return;
-      stopTimer();
-      state.activeId = task.id;
-      state.timerTotal = task.minutes * 60;
-      state.secondsLeft = state.timerTotal;
+
+      if (state.activeId !== task.id) {
+        stopTimer();
+        state.activeId = task.id;
+        state.timerTotal = task.minutes * 60;
+        state.secondsLeft = state.timerTotal;
+      } else if (state.secondsLeft <= 0) {
+        state.secondsLeft = state.timerTotal;
+      }
+
       render();
+      if (startImmediately && !state.running) startPauseTimer();
     }
 
     function toggleTask(id) {
@@ -3463,7 +3481,10 @@
       if (task.subtasks.length) {
         task.subtasks.forEach(subtask => subtask.done = nextDone);
       }
-      if (task.done && state.activeId === id) stopTimer();
+      if (task.done && state.activeId === id) {
+        stopTimer();
+        state.activeId = null;
+      }
       saveTasks();
       render();
     }
@@ -3553,7 +3574,10 @@
       if (!task || !subtask) return;
       subtask.done = !subtask.done;
       setTaskCompletion(task, task.subtasks.length > 0 && task.subtasks.every(item => item.done));
-      if (task.done && state.activeId === taskId) stopTimer();
+      if (task.done && state.activeId === taskId) {
+        stopTimer();
+        state.activeId = null;
+      }
       saveTasks();
       render();
     }
@@ -3565,7 +3589,10 @@
       if (task.subtasks.length) {
         setTaskCompletion(task, task.subtasks.every(item => item.done));
       }
-      if (task.done && state.activeId === taskId) stopTimer();
+      if (task.done && state.activeId === taskId) {
+        stopTimer();
+        state.activeId = null;
+      }
       saveTasks();
       render();
     }
@@ -3609,6 +3636,7 @@
       if (state.running) {
         stopTimer();
       } else {
+        if (state.secondsLeft <= 0) state.secondsLeft = state.timerTotal;
         state.running = true;
         state.tick = setInterval(() => {
           state.secondsLeft = Math.max(0, state.secondsLeft - 1);
@@ -3661,6 +3689,7 @@
       setTaskCompletion(task, true);
       task.subtasks.forEach(subtask => subtask.done = true);
       stopTimer();
+      state.activeId = null;
       saveTasks();
       render();
     }
@@ -3812,7 +3841,6 @@
         saveTasks();
         saveIdeas();
         render();
-        if (state.tasks.length) chooseTask(state.tasks.find(task => !task.done)?.id || state.tasks[0].id);
         els.syncStatus.textContent = "Data berhasil diimpor";
       } catch (error) {
         els.syncStatus.textContent = error.message || "Impor gagal";
@@ -4032,7 +4060,7 @@
       if (button.dataset.action === "toggle") toggleTask(id);
       if (button.dataset.action === "toggle-subtasks") toggleSubtasks(id);
       if (button.dataset.action === "edit") openEditTask(id);
-      if (button.dataset.action === "select") chooseTask(id);
+      if (button.dataset.action === "select") chooseTask(id, true);
       if (button.dataset.action === "archive") archiveTask(id);
       if (button.dataset.action === "restore") restoreTask(id);
       if (button.dataset.action === "delete") deleteTask(id);
